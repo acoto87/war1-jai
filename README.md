@@ -1,6 +1,8 @@
 # War1
 
-A remake of Warcraft: Orcs & Humans written in Jai. Currently this is an early port from https://github.com/acoto87/war1.
+A remake of Warcraft: Orcs & Humans written in Jai.
+
+_Currently this is an early port from https://github.com/acoto87/war1._
 
 This is a remake of the Warcraft: Orcs & Humans game created and published by Blizzard Entertainment in 1994. It pretends to be a complete implementation of the game using only the assets (*.WAR files) from the original game.
 
