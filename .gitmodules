@@ -1,0 +1,3 @@
+[submodule "jai-modules"]
+	path = jai-modules
+	url = https://github.com/acoto87/jai-modules
