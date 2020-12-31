@@ -35,7 +35,7 @@ lengthSqr :: inline (v: Vec2) -> f32 {
 }
 
 length :: inline (v: Vec2) -> f32 {
-    return sqrt(lengthSqr(v));
+    return sqrtf(lengthSqr(v));
 }
 
 distanceSqr :: inline (v1: Vec2, v2: Vec2) -> f32 {
@@ -45,7 +45,7 @@ distanceSqr :: inline (v1: Vec2, v2: Vec2) -> f32 {
 }
 
 distance :: inline (v1: Vec2, v2: Vec2) -> f32 {
-    return sqrt(distanceSqr(v1, v2));
+    return sqrtf(distanceSqr(v1, v2));
 }
 
 distanceInTiles :: inline (v1: Vec2, v2: Vec2) -> s32 {
@@ -273,5 +273,4 @@ getClosestPointOnRect :: (p: Vec2, r: Rect) -> Vec2 {
 
 #scope_file
 
-Math :: #import "Math";
-sqrt :: Math.sqrt;
+#import "utils";

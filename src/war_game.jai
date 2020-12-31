@@ -39,7 +39,7 @@ initGame :: (ctx: *WarContext) -> bool {
     glCheckOpenGLVersion();
 
     // init graphics
-    ctx.gfx = nvgCreateGLES2(NVGcreateFlags.NVG_STENCIL_STROKES | .NVG_DEBUG);
+    ctx.gfx = nvgCreateGL2(NVGcreateFlags.NVG_STENCIL_STROKES | .NVG_DEBUG);
     if (ctx.gfx == null) {
         print("Could not init nanovg.\n");
         glfwDestroyWindow(ctx.window);

@@ -1,14 +1,23 @@
 WORKSPACE_NAME :: "war1";
 EXECUTABLE_NAME :: "war1.exe";
-OUTPUT_FOLDER_PATH :: "build/";
-MODULES_PATH :: "modules";
+
+#if OS == .WINDOWS {
+    OUTPUT_FOLDER_PATH :: "build/win64/";
+} else if OS == .LINUX {
+    OUTPUT_FOLDER_PATH :: "build/linux64/";
+}
+
+MODULES_PATH :: "jai-modules";
 BUILD_FILE_PATH :: "src/war1.jai";
-LIBS_FOLDER_PATH :: "libs/win64";
+
+#if OS == .WINDOWS {
+    LIBS_FOLDER_PATH :: "libs/win64/";
+} else if OS == .LINUX {
+    LIBS_FOLDER_PATH :: "libs/linux64/";
+}
 
 build :: () {
     set_working_directory(#filepath);
-
-    makeDirectoryIfNotExist(opts.output_path);
 
     // Don't produce output for this default workspace
     opts := getBuildOptions();
@@ -22,6 +31,8 @@ build :: () {
     opts.backend = Compiler.Backend.LLVM;
     array_add(*opts.modules_search_path_array, MODULES_PATH);
 
+    makeDirectoryIfNotExist(opts.output_path);
+
     // Start a new workspace for the actual program
     workspace := createWorkspace(WORKSPACE_NAME);
     setBuildOptions(opts, workspace);
@@ -31,7 +42,7 @@ build :: () {
 }
 
 copyFiles :: (source: string, dest: string) {
-    visitor :: (info: *File_Visit_Info, paths: [2] string) {
+    visitor :: (info: *FileVisitInfo, paths: [2] string) {
         relativePath := info.full_name;
         advance(*relativePath, paths[0].count);
         outPath := concatenate(paths[1], "/", relativePath);
@@ -39,7 +50,10 @@ copyFiles :: (source: string, dest: string) {
         copyFile(info.full_name, outPath);
     }
 
-    paths: [2] string = .[source, dest];
+    paths: [2] string;
+    paths[0] = source;
+    paths[1] = dest;
+
     res := visitFiles(paths[0], true, paths, visitor);
     assert(res);
 }
@@ -72,11 +86,14 @@ BuildOutputType :: Compiler.Build_Output_Type;
 
 File :: #import "File";
 makeDirectoryIfNotExist :: File.make_directory_if_it_does_not_exist;
-getDirectoryPath :: File.path_strip_filename;
 
 FileUtilities :: #import "File_Utilities";
+FileVisitInfo :: FileUtilities.File_Visit_Info;
 copyFile :: FileUtilities.copy_file;
 visitFiles :: FileUtilities.visit_files;
 
 #import "Basic";
-#import "String";
+
+String :: #import "String";
+getDirectoryPath :: String.path_strip_filename;
+concatenate :: String.concatenate;
