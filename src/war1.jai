@@ -47,7 +47,7 @@ main :: () {
         presentGame(*ctx);
     }
 
-	nvgDeleteGL2(ctx.gfx);
+    nvgDeleteGL2(ctx.gfx);
     glfwDestroyWindow(ctx.window);
     glfwTerminate();
 
