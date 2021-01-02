@@ -4,7 +4,7 @@ initGame :: (ctx: *WarContext) -> bool {
     glfwWindowHint(GLFW_RESIZABLE, 0);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    // glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 
     ctx.globalScale = 3;
     ctx.globalSpeed = 1;
@@ -13,7 +13,7 @@ initGame :: (ctx: *WarContext) -> bool {
     ctx.windowWidth = cast(s32) (ctx.originalWindowWidth * ctx.globalScale);
     ctx.windowHeight = cast(s32) (ctx.originalWindowHeight * ctx.globalScale);
     ctx.windowTitle = "War 1";
-    ctx.window = glfwCreateWindow(ctx.windowWidth, ctx.windowHeight, ctx.windowTitle, null, null);
+    ctx.window = glfwCreateWindow(ctx.windowWidth, ctx.windowHeight, toCString(ctx.windowTitle, tempAllocator), null, null);
     ctx.transitionDelay = 0;
     ctx.cheatsEnabled = true;
 
@@ -47,8 +47,6 @@ initGame :: (ctx: *WarContext) -> bool {
 		return false;
 	}
 
-    using glGetProcedures();
-
     glViewport(0, 0, cast(u32) ctx.framebufferWidth, cast(u32) ctx.framebufferHeight);
     glClearColor(0, 0, 1, 1.0);
 
@@ -57,8 +55,6 @@ initGame :: (ctx: *WarContext) -> bool {
 }
 
 renderGame :: (ctx: *WarContext) {
-    using glGetProcedures();
-
     gfx := ctx.gfx;
 
     framebufferWidth := ctx.framebufferWidth;

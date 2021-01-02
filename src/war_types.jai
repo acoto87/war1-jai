@@ -15,7 +15,7 @@ WarContext :: struct {
     framebufferWidth: s32;
     framebufferHeight: s32;
     devicePixelRatio: f32;
-    windowTitle: *u8;
+    windowTitle: string;
     window: *GLFWwindow;
 
     // warFile: *WarFile;

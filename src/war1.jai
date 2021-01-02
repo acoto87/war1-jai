@@ -36,15 +36,20 @@ main :: () {
     // glfwSetCharCallback(context.window, inputCharCallback);
 
     while (!glfwWindowShouldClose(ctx.window)) {
-        windowTitle := sprint("War 1: % at % fps (%)", formatFloat(ctx.time, trailing_width=2, zero_removal=FormatFloat.Zero_Removal.NO), ctx.fps, formatFloat(ctx.deltaTime, trailing_width=2, zero_removal=FormatFloat.Zero_Removal.NO));
-        ctx.windowTitle = toCString(windowTitle);
-        glfwSetWindowTitle(ctx.window, ctx.windowTitle);
-        free(windowTitle);
+        ctx.windowTitle = sprint(
+            "War 1: % at % fps (%)",
+            formatFloat(ctx.time, trailing_width=2, zero_removal=FormatFloat.Zero_Removal.NO),
+            ctx.fps,
+            formatFloat(ctx.deltaTime, trailing_width=2, zero_removal=FormatFloat.Zero_Removal.NO)
+        );
+        glfwSetWindowTitle(ctx.window, toCString(ctx.windowTitle, tempAllocator));
 
         // inputGame(*ctx);
         // updateGame(*ctx);
         renderGame(*ctx);
         presentGame(*ctx);
+
+        resetTemporaryStorage();
     }
 
     nvgDeleteGL2(ctx.gfx);
@@ -55,3 +60,7 @@ main :: () {
 }
 
 #scope_file
+
+Basic :: #import "Basic";
+resetTemporaryStorage :: Basic.reset_temporary_storage;
+tprint :: Basic.tprint;
