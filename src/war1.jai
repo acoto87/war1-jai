@@ -1,8 +1,8 @@
 #import "glfw";
 #import "GL";
+#import "nanovg";
 #import "collections";
 #import "utils";
-#import "nanovg";
 
 #load "war_math.jai";
 #load "war_types.jai";
@@ -19,7 +19,7 @@ errorCallback :: (error: s32, description: *u8) #c_call {
 }
 
 main :: () {
-    randomSeed(time(null));
+    randomSeed(cast(s32) time(null));
 
     glfwSetErrorCallback(errorCallback);
 
@@ -44,7 +44,7 @@ main :: () {
         );
         glfwSetWindowTitle(ctx.window, toCString(ctx.windowTitle, tempAllocator));
 
-        // inputGame(*ctx);
+        inputGame(*ctx);
         // updateGame(*ctx);
         renderGame(*ctx);
         presentGame(*ctx);
