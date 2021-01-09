@@ -4,8 +4,13 @@
 #import "collections";
 #import "utils";
 
+#load "war_constants.jai";
+#load "war_color.jai";
 #load "war_math.jai";
 #load "war_types.jai";
+#load "war_file.jai";
+#load "war_pathfinding.jai";
+#load "war_components.jai";
 #load "war_game.jai";
 
 EXIT_SUCCESS :: 0;
@@ -14,21 +19,23 @@ EXIT_FAILURE :: -1;
 errorCallback :: (error: s32, description: *u8) #c_call {
     newContext: Context;
     push_context newContext {
-        print("Error: %\n", toString(description));
+        logError("Error: %\n", toString(description));
     }
 }
 
 main :: () {
-    randomSeed(cast(s32) time(null));
+    initLog(LogSeverity.Debug);
 
     glfwSetErrorCallback(errorCallback);
 
     if (!glfwInit()) {
+        logError("Error initializing GLFW!\n");
         exit(EXIT_FAILURE);
     }
 
     ctx: WarContext;
     if (!initGame(*ctx)) {
+        logError("Can't initialize the game!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -60,7 +67,3 @@ main :: () {
 }
 
 #scope_file
-
-Basic :: #import "Basic";
-resetTemporaryStorage :: Basic.reset_temporary_storage;
-tprint :: Basic.tprint;

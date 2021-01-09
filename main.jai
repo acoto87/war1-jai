@@ -16,6 +16,8 @@ BUILD_FILE_PATH :: "src/war1.jai";
     LIBS_FOLDER_PATH :: "libs/linux64/";
 }
 
+ASSETS_FOLDER_PATH :: "assets/";
+
 build :: () {
     set_working_directory(#filepath);
 
@@ -39,6 +41,7 @@ build :: () {
     addBuildFile(BUILD_FILE_PATH, workspace);
 
     copyFiles(LIBS_FOLDER_PATH, opts.output_path);
+    copyFiles(ASSETS_FOLDER_PATH, opts.output_path);
 }
 
 copyFiles :: (source: string, dest: string) {
