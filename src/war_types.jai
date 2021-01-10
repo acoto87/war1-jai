@@ -81,26 +81,7 @@ WarSpriteAnimation :: struct {
     status: WarAnimationStatus;
 }
 
-WarLevelUnit :: struct {
-    x, y: u8;
-    type: WarUnitType;
-    player: u8;
-    resourceKind: WarResourceKind;
-    amount: u16;
-}
 
-WarConstructType :: enum {
-    Unkown;
-    Road;
-    Wall;
-}
-
-WarLevelConstruct :: struct {
-    type: WarConstructType;
-    x1, y1: u8;
-    x2, y2: u8;
-    player: u8;
-}
 
 WarTilesetTile :: struct {
     WarTile :: struct {
@@ -112,105 +93,9 @@ WarTilesetTile :: struct {
     tiles: [4] WarTile;
 }
 
-WarCustomMapConfiguration :: struct {
-    startEntitiesCount: u32;
-    startEntities: [MAX_CUSTOM_MAP_ENTITIES_COUNT] WarLevelUnit;
-}
 
-WarResource :: struct {
-    type: WarResourceType;
-}
 
-WarResourcePalette :: struct {
-    using base: WarResource;
-    colors: [PALETTE_LENGTH] u8;
-}
 
-WarResourceImage :: struct {
-    width: u16;
-    height: u16;
-    pixels: *u8;
-}
-
-WarResourceSprite :: struct {
-    framesCount: u16;
-    frameWidth: u8;
-    frameHeight: u8;
-    frames: [MAX_SPRITE_FRAME_COUNT] WarSpriteFrame;
-}
-
-WarResourceLevelInfo :: struct {
-    allowId: u32;
-    allowedHumanUnits: bool;
-    allowedOrcsUnits: bool;
-    customMap: bool;
-    allowedFeatures: [MAX_FEATURES_COUNT] u8;
-    allowedUpgrades: [MAX_UPGRADES_COUNT][MAX_PLAYERS_COUNT] u8;
-    startX: u16;
-    startY: u16;
-    nextLevelIndex: u16;
-    visualIndex: u16;
-    passableIndex: u16;
-    paletteIndex: u16;
-    tilesIndex: u16;
-    tilesetIndex: u16;
-    tilesetType: u16;
-    lumber: [MAX_PLAYERS_COUNT] u32;
-    gold: [MAX_PLAYERS_COUNT] u32;
-    races: [MAX_PLAYERS_COUNT] WarRace;
-    objectives: [MAX_OBJECTIVES_LENGTH] u8;
-
-    startEntitiesCount: u32;
-    startEntities: [MAX_ENTITIES_COUNT] WarLevelUnit;
-
-    startRoadsCount: u32;
-    startRoads: [MAX_CONSTRUCTS_COUNT] WarLevelConstruct;
-
-    startWallsCount: u32;
-    startWalls: [MAX_CONSTRUCTS_COUNT] WarLevelConstruct;
-
-    startGoldminesCount: u32;
-    startGoldmines: [MAX_CUSTOM_MAP_GOLDMINES_COUNT] WarLevelUnit;
-
-    startConfigurationsCount: u32;
-    startConfigurations: [MAX_CUSTOM_MAP_CONFIGURATIONS_COUNT] WarCustomMapConfiguration;
-}
-
-WarResourceLevelVisual :: struct {
-    data: [MAP_TILES_WIDTH * MAP_TILES_HEIGHT] u16;
-}
-
-WarResourceLevelPassable :: struct {
-    data: [MAP_TILES_WIDTH * MAP_TILES_HEIGHT] u16;
-}
-
-WarResourceTileset :: struct {
-    tilesCount: u32;
-    data: [TILESET_WIDTH * TILESET_HEIGHT * 4] u8;
-}
-
-WarResourceTiles :: struct {
-    palette1, palette2: u16;
-    data: *u8;
-}
-
-WarResourceText :: struct {
-    length: u32;
-    text: *u8;
-}
-
-WarResourceAudio :: struct {
-    length: s32;
-    data: *u8;
-}
-
-WarResourceCursor :: struct {
-    hotx: u16;
-    hoty: u16;
-    width: u16;
-    height: u16;
-    pixels: *u8;
-}
 
 WarCampaignMapType :: enum {
     Humans01 :: 117;
@@ -1304,6 +1189,16 @@ WarEntity :: struct {
     type: WarEntityType;
     enabled: bool;
     components: HashMap(WarComponentType, WarComponent);
+}
+
+//
+// Map
+//
+
+WarMapTilesetType :: enum {
+    Forest;
+    Swamp;
+    Dungeon;
 }
 
 //

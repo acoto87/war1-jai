@@ -8,7 +8,9 @@
 #load "war_color.jai";
 #load "war_math.jai";
 #load "war_types.jai";
+#load "war_database.jai";
 #load "war_file.jai";
+#load "war_resources.jai";
 #load "war_pathfinding.jai";
 #load "war_components.jai";
 #load "war_game.jai";
