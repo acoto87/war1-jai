@@ -1,11 +1,11 @@
 MAX_RESOURCES_COUNT                 : s32 : 583;
 MAX_TEXTURES_COUNT                  : s32 : 583;
-MAX_ENTITIES_COUNT                  : s32 : 100;
+MAX_ENTITIES_COUNT                  : s32 : 200;
 MAX_SPRITE_FRAME_COUNT              : s32 : 100;
-MAX_CONSTRUCTS_COUNT                : s32 : 100;
+MAX_CONSTRUCTS_COUNT                : s32 : 200;
 MAX_CUSTOM_MAP_GOLDMINES_COUNT      : s32 : 10;
 MAX_CUSTOM_MAP_CONFIGURATIONS_COUNT : s32 : 10;
-MAX_CUSTOM_MAP_ENTITIES_COUNT       : s32 : 100;
+MAX_CUSTOM_MAP_ENTITIES_COUNT       : s32 : 200;
 MAX_UNIT_SELECTION_COUNT            : s32 : 4;
 MAX_SQUAD_COUNT                     : s32 : 10;
 

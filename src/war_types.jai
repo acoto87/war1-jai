@@ -2,25 +2,6 @@
 // Resources
 //
 
-
-WarResourceType :: enum {
-    Unkown;
-    Image;
-    Palette;
-    Xmid;
-    Cursor;
-    UI;
-    Text;
-    LevelInfo;
-    LevelVisual;
-    LeveLPassable;
-    Sprite;
-    Wave;
-    VOC;
-    Tileset;
-    Tiles;
-}
-
 WarFontData :: struct {
     spriteWidth: s32;
     spriteHeight: s32;

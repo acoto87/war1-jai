@@ -6,6 +6,24 @@ WAR_RAIN_OF_FIRE_EXPLOSION_RESOURCE :: 351;
 WAR_SPELL_RESOURCE :: 355;
 WAR_POISON_CLOUD_RESOURCE :: 350;
 
+WarResourceType :: enum {
+    Unkown;
+    Image;
+    Palette;
+    Xmid;
+    Cursor;
+    UI;
+    Text;
+    LevelInfo;
+    LevelVisual;
+    LeveLPassable;
+    Sprite;
+    Wave;
+    Voc;
+    Tileset;
+    Tiles;
+}
+
 WarResource :: struct {
     type: WarResourceType;
 }
@@ -140,7 +158,7 @@ WarCustomMapConfiguration :: struct {
 getOrCreateResource :: ($resourceType: Type, ctx: *WarContext, index: u32) -> *resourceType {
     assert(index >= 0 && index < cast(u32) MAX_RESOURCES_COUNT);
     if (ctx.resources[index] == null) {
-        logInfo("Creating resource: %d\n", index);
+        logInfo("Creating resource: %\n", index);
         ctx.resources[index] = alloc(resourceType);
     }
     return cast(*resourceType) ctx.resources[index];
@@ -280,7 +298,7 @@ loadImageResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     width := memoryRead(u16, rawResource.data, 0);
     height := memoryRead(u16, rawResource.data, 2);
 
-    pixels := alloc(u8, width * height * 4);
+    pixels := alloc(u8, cast(s64) width * height * 4);
     for i : 0..width*height-1 {
         colorIndex := cast(u32) memoryRead(u8, rawResource.data, 4 + i);
 
@@ -327,7 +345,7 @@ loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
         frame.w = memoryRead(u8, rawResource.data, 4 + i * 8 + 2);
         frame.h = memoryRead(u8, rawResource.data, 4 + i * 8 + 3);
         frame.off = memoryRead(u32, rawResource.data, 4 + i * 8 + 4);
-        frame.data = alloc(u8, frameWidth * frameHeight * 4);
+        frame.data = alloc(u8, cast(s64) frameWidth * frameHeight * 4);
 
         // found in war1tool.c, don't know if is needed
         // if (off < 0) {  // High bit of width
@@ -664,10 +682,10 @@ loadTileset :: (ctx: *WarContext, entry: *DatabaseEntry) {
 
     free(data);
 
-    #if __DEBUG__ {
-        fp := tprint("output_%d.png", entry.index);
-        stbi_write_png(toCString(fp, tempAllocator), TILESET_WIDTH, TILESET_HEIGHT, 4, resource.data, TILESET_WIDTH * 4);
-    }
+    // #if __DEBUG__ {
+    //     fp := tprint("output_%d.png", entry.index);
+    //     stbi_write_png(toCString(fp, tempAllocator), TILESET_WIDTH, TILESET_HEIGHT, 4, resource.data, TILESET_WIDTH * 4);
+    // }
 }
 
 loadTiles :: (ctx: *WarContext, entry: *DatabaseEntry) {
@@ -722,7 +740,7 @@ loadXmi :: (ctx: *WarContext, entry: *DatabaseEntry) {
     resource := getOrCreateResource(WarResourceAudio, ctx, entry.index);
     resource.type = WarResourceType.Xmid;
     resource.data = midData;
-    resource.length = midLength;
+    resource.length = cast(s32) midLength;
 }
 
 loadWave :: (ctx: *WarContext, entry: *DatabaseEntry) {
@@ -736,38 +754,38 @@ loadWave :: (ctx: *WarContext, entry: *DatabaseEntry) {
     mbInitFromMemory(*bufInput, rawResource.data, rawResource.length);
 
     // skip "RIFF"
-    mbSkip(*bufInput, 4);
+    check(#code mbSkip(*bufInput, 4));
     // skip file length, always 36 + dataLength
-    mbSkip(*bufInput, sizeof(s32));
+    check(#code mbSkip(*bufInput, size_of(s32)));
     // skip "WAVE"
-    mbSkip(*bufInput, 4);
+    check(#code mbSkip(*bufInput, 4));
     // skip "fmt "
-    mbSkip(*bufInput, 4);
+    check(#code mbSkip(*bufInput, 4));
     // skip fmt length, always 10
-    mbSkip(*bufInput, sizeof(s32));
+    check(#code mbSkip(*bufInput, size_of(s32)));
     // skip uncompressed, always 1
-    mbSkip(*bufInput, sizeof(s16));
+    check(#code mbSkip(*bufInput, size_of(s16)));
     // skip channel count, always 1
-    mbSkip(*bufInput, sizeof(s16));
+    check(#code mbSkip(*bufInput, size_of(s16)));
     // skip sample rate, always 11025
-    mbSkip(*bufInput, sizeof(s32));
+    check(#code mbSkip(*bufInput, size_of(s32)));
     // skip byte rate, always 11025
-    mbSkip(*bufInput, sizeof(s32));
+    check(#code mbSkip(*bufInput, size_of(s32)));
     // skip block align, always 1
-    mbSkip(*bufInput, sizeof(s16));
+    check(#code mbSkip(*bufInput, size_of(s16)));
     // skip bits per sample, always 8
-    mbSkip(*bufInput, sizeof(s16));
+    check(#code mbSkip(*bufInput, size_of(s16)));
     // skip "data"
-    mbSkip(*bufInput, 4);
+    check(#code mbSkip(*bufInput, 4));
 
     dataLength: s32;
-    mbReadInt32LE(*bufInput, *dataLength);
+    check(#code mbReadInt32LE(*bufInput, *dataLength));
     assert(dataLength > 0);
 
     data := alloc(u8, dataLength);
     defer free(data);
 
-    mbReadBytes(*bufInput, data, dataLength);
+    check(#code mbReadBytes(*bufInput, data, dataLength));
 
     // this data is at 11025khz, and for playing it back I needed at 44100khz
     // so I need to upsampling it here by a factor of 4
@@ -791,26 +809,29 @@ loadVoc :: (ctx: *WarContext, entry: *DatabaseEntry) {
     mbInitFromMemory(*bufInput, rawResource.data, rawResource.length);
 
     vocHeader: [19] u8;
-    mbReadString(*bufInput, vocHeader, sizeof(vocHeader));
-    assert(strncmp(vocHeader, "Creative Voice File", sizeof(vocHeader)) == 0);
+    check(#code mbReadBytes(*bufInput, vocHeader.data, vocHeader.count));
+    if (strncmp(vocHeader.data, "Creative Voice File", vocHeader.count) != 0) {
+        logError("Failed to load VOC resource: %\n", entry.index);
+        return;
+    }
 
     // skip 0x1A
-    mbSkip(*bufInput, 1);
+    check(#code mbSkip(*bufInput, 1));
 
     // skip offset to data, always 26
-    mbSkip(*bufInput, 2);
+    check(#code mbSkip(*bufInput, 2));
 
     // skip version, always 266
-    mbSkip(*bufInput, 2);
+    check(#code mbSkip(*bufInput, 2));
     // skip 2's comp of version, always 4393
-    mbSkip(*bufInput, 2);
+    check(#code mbSkip(*bufInput, 2));
 
     type: u8;
-    mbRead(*bufInput, *type);
+    check(#code mbRead(*bufInput, *type));
     assert(type == 1);
 
     dataLength: s32;
-    mbReadInt24LE(*bufInput, *dataLength);
+    check(#code mbReadInt24LE(*bufInput, *dataLength));
     assert(dataLength > 0);
 
     // the length of the data is this value - 2
@@ -818,12 +839,12 @@ loadVoc :: (ctx: *WarContext, entry: *DatabaseEntry) {
     dataLength -= 2;
 
     // skip sample rate and compression type
-    mbSkip(*bufInput, 2);
+    check(#code mbSkip(*bufInput, 2));
 
     data := alloc(u8, dataLength);
     defer free(data);
 
-    mbReadBytes(*bufInput, data, dataLength);
+    check(#code mbReadBytes(*bufInput, data, dataLength));
 
     // this data is at 11025khz, and for playing it back I needed at 44100khz
     // so I need to upsampling it here by a factor of 4
@@ -831,7 +852,7 @@ loadVoc :: (ctx: *WarContext, entry: *DatabaseEntry) {
     newDataLength: s32 = dataLength * 4;
 
     resource := getOrCreateResource(WarResourceAudio, ctx, entry.index);
-    resource.type = WarResourceType.Audio;
+    resource.type = WarResourceType.Voc;
     resource.data = newData;
     resource.length = newDataLength;
 }
@@ -893,7 +914,7 @@ loadResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
         case DatabaseEntryType.Wave;            loadWave(ctx, entry);
         case DatabaseEntryType.Voc;             loadVoc(ctx, entry);
         case DatabaseEntryType.Cursor;          loadCursor(ctx, entry);
-        case; logInfo("DB entries of type %d aren't handled yet.\n", entry.type);
+        case; logInfo("DB entries of type % aren't handled yet.\n", entry.type);
     }
 }
 
@@ -1020,4 +1041,9 @@ loadCustomStartEntities :: (resource: *WarResourceLevelInfo, rawResource: *WarRa
     }
 
     return offset;
+}
+
+check :: (code: Code) #expand {
+    result := #insert code;
+    assert(result);
 }

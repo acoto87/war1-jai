@@ -86,9 +86,9 @@ loadDataFile :: (ctx: *WarContext) -> bool {
         return false;
     }
 
-    // for entry : assets {
-    //     loadResource(ctx, *assets[i]);
-    // }
+    for * entry : assets {
+        loadResource(ctx, entry);
+    }
 
     return true;
 }
