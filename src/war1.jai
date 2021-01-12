@@ -14,6 +14,7 @@
 #load "war_audio.jai";
 #load "war_pathfinding.jai";
 #load "war_components.jai";
+#load "war_scenes.jai";
 #load "war_game.jai";
 
 EXIT_SUCCESS :: 0;
