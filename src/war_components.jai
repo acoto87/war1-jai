@@ -327,20 +327,6 @@ WarSightComponent :: struct {
 // is destroyed, and the position is free for another entity to occupy it.
 //
 
-StableList :: struct(TItem: Type) {
-}
-
-add :: inline (list: *$T/StableList, item: T.TItem) -> s64 {
-    return -1;
-}
-
-removeAt :: inline (list: *$T/StableList, index: s64) {
-}
-
-ref :: inline (list: *$T/StableList, index: s64) -> *T.TItem {
-    return null;
-}
-
 WarComponentsManager :: struct {
     transforms: StableList(WarTransformComponent);
     sprites: StableList(WarSpriteComponent);
