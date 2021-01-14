@@ -106,12 +106,6 @@ WarCampaignMapType :: enum {
     Custom;
 }
 
-WarLevelResult :: enum {
-    None;
-    Win;
-    Lose;
-}
-
 WarFeatureType :: enum {
     // units
     Footman;
@@ -742,16 +736,6 @@ WarEntity :: struct {
     type: WarEntityType;
     enabled: bool;
     components: [WarComponentType.Count] s16;
-}
-
-//
-// Map
-//
-
-WarMapTilesetType :: enum {
-    Forest;
-    Swamp;
-    Dungeon;
 }
 
 //

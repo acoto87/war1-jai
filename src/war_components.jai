@@ -301,32 +301,6 @@ WarSightComponent :: struct {
     time: f32;          // time in seconds left of the spell
 }
 
-// @Note: I can have this struct somewhere, and then each component pointer
-// in each entity would point to the appropriate component in one of these
-// arrays/lists. That way if we want to traverse all transforms or sprites for all entities,
-// we can do directly with this components manager.
-//
-// Approach #1
-// These arrays can be fixed in length, so we can have a maximum number of each components,
-// but then these arrays would have different number of elements, particularly with the most
-// used ones vs the others. Define different max sizes for each component type array could be
-// possible but it may be weird and would put a cap number of components and be bad if I don't
-// do enough analysis on those max sizes.
-//
-// Approach #2
-// These arrays can be dynamic in length, that way the wasted space is less, but it introduces
-// other problem, and that is when the dynamically array is resized, I need to keep the pointer
-// or positions stable, otherwise it would break the entities pointing here.
-//
-// In the Entity struct instead of having the components array of pointers to these arrays,
-// I can have integers that points to indices. Maybe this could be good enough if I implement
-// an unordered list that is stable regarding the indices of each element. That's once an element
-// is assigned an index, it won't move even with resizes, and then an empty list of positions is
-// maintained to fill wholes in the array. If this is true, each component in the entities can point
-// to the index of each component in one of these arrays and that index won't change until the entity
-// is destroyed, and the position is free for another entity to occupy it.
-//
-
 WarComponentsManager :: struct {
     transforms: StableList(WarTransformComponent);
     sprites: StableList(WarSpriteComponent);
@@ -348,73 +322,49 @@ WarComponentsManager :: struct {
     audios: StableList(WarAudioComponent);
 }
 
-getComponent :: inline (ctx: *WarContext, entity: *WarEntity, type: WarComponentType) -> *WarComponent {
+getComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) -> *WarComponent {
     assert(ctx != null);
+    assert(ctx.scene != null);
     assert(entity != null);
 
     manager := ctx.scene.componentsManager;
     index := entity.components[type];
-    if type == {
-        case WarComponentType.Transform;    return ref(*manager.transforms, index);
-        case WarComponentType.Sprite;       return ref(*manager.sprites, index);
-        case WarComponentType.Unit;         return ref(*manager.units, index);
-        case WarComponentType.Animations;   return ref(*manager.animationss, index);
-        case WarComponentType.Road;         return ref(*manager.roads, index);
-        case WarComponentType.Wall;         return ref(*manager.walls, index);
-        case WarComponentType.Ruin;         return ref(*manager.ruins, index);
-        case WarComponentType.Forest;       return ref(*manager.forests, index);
-        case WarComponentType.Projectile;   return ref(*manager.projectiles, index);
-        case WarComponentType.PoisonCloud;  return ref(*manager.poisonClouds, index);
-        case WarComponentType.Sight;        return ref(*manager.sights, index);
-        case WarComponentType.StateMachine; return ref(*manager.stateMachines, index);
-        case WarComponentType.UI;           return ref(*manager.uis, index);
-        case WarComponentType.Text;         return ref(*manager.texts, index);
-        case WarComponentType.Rect;         return ref(*manager.rects, index);
-        case WarComponentType.Button;       return ref(*manager.buttons, index);
-        case WarComponentType.Cursor;       return ref(*manager.cursors, index);
-        case WarComponentType.Audio;        return ref(*manager.audios, index);
+    #if (type == WarComponentType.Transform)         return ref(*manager.transforms, index);
+    else if (type ==  WarComponentType.Sprite)       return ref(*manager.sprites, index);
+    else if (type ==  WarComponentType.Unit)         return ref(*manager.units, index);
+    else if (type ==  WarComponentType.Animations)   return ref(*manager.animationss, index);
+    else if (type ==  WarComponentType.Road)         return ref(*manager.roads, index);
+    else if (type ==  WarComponentType.Wall)         return ref(*manager.walls, index);
+    else if (type ==  WarComponentType.Ruin)         return ref(*manager.ruins, index);
+    else if (type ==  WarComponentType.Forest)       return ref(*manager.forests, index);
+    else if (type ==  WarComponentType.Projectile)   return ref(*manager.projectiles, index);
+    else if (type ==  WarComponentType.PoisonCloud)  return ref(*manager.poisonClouds, index);
+    else if (type ==  WarComponentType.Sight)        return ref(*manager.sights, index);
+    else if (type ==  WarComponentType.StateMachine) return ref(*manager.stateMachines, index);
+    else if (type ==  WarComponentType.UI)           return ref(*manager.uis, index);
+    else if (type ==  WarComponentType.Text)         return ref(*manager.texts, index);
+    else if (type ==  WarComponentType.Rect)         return ref(*manager.rects, index);
+    else if (type ==  WarComponentType.Button)       return ref(*manager.buttons, index);
+    else if (type ==  WarComponentType.Cursor)       return ref(*manager.cursors, index);
+    else if (type ==  WarComponentType.Audio)        return ref(*manager.audios, index);
+    else {
+        logError("Unkown component of type: %\n", type);
+        return null;
     }
-    return ref(*manager.transforms, index);
 }
 
-getTransformComponent :: #bake_arguments getComponent(type = WarComponentType.Transform);
-getSpriteComponent :: #bake_arguments getComponent(type = WarComponentType.Sprite);
-getUnitComponent :: #bake_arguments getComponent(type = WarComponentType.Unit);
-getAnimationsComponent :: #bake_arguments getComponent(type = WarComponentType.Animations);
-getRoadComponent :: #bake_arguments getComponent(type = WarComponentType.Road);
-getWallComponent :: #bake_arguments getComponent(type = WarComponentType.Wall);
-getRuinComponent :: #bake_arguments getComponent(type = WarComponentType.Ruin);
-getForestComponent :: #bake_arguments getComponent(type = WarComponentType.Forest);
-getStateMachineComponent :: #bake_arguments getComponent(type = WarComponentType.StateMachine);
-getUIComponent :: #bake_arguments getComponent(type = WarComponentType.UI);
-getTextComponent :: #bake_arguments getComponent(type = WarComponentType.Text);
-getRectComponent :: #bake_arguments getComponent(type = WarComponentType.Rect);
-getButtonComponent :: #bake_arguments getComponent(type = WarComponentType.Button);
-getCursorComponent :: #bake_arguments getComponent(type = WarComponentType.Cursor);
-getAudioComponent :: #bake_arguments getComponent(type = WarComponentType.Audio);
+getComponent :: inline ($componentType: Type, ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) -> *componentType {
+    return cast(*componentType) getComponent(ctx, entity, type);
+}
 
 hasComponent :: inline (ctx: *WarContext, entity: *WarEntity, type: WarComponentType) -> bool {
     assert(entity != null);
     return entity.components[type] >= 0;
 }
 
-hasTransformComponent :: #bake_arguments hasComponent(type = WarComponentType.Transform);
-hasSpriteComponent :: #bake_arguments hasComponent(type = WarComponentType.Sprite);
-hasUnitComponent :: #bake_arguments hasComponent(type = WarComponentType.Unit);
-hasAnimationsComponent :: #bake_arguments hasComponent(type = WarComponentType.Animations);
-hasRoadComponent :: #bake_arguments hasComponent(type = WarComponentType.Road);
-hasWallComponent :: #bake_arguments hasComponent(type = WarComponentType.Wall);
-hasRuinComponent :: #bake_arguments hasComponent(type = WarComponentType.Ruin);
-hasForestComponent :: #bake_arguments hasComponent(type = WarComponentType.Forest);
-hasStateMachineComponent :: #bake_arguments hasComponent(type = WarComponentType.StateMachine);
-hasUIComponent :: #bake_arguments hasComponent(type = WarComponentType.UI);
-hasTextComponent :: #bake_arguments hasComponent(type = WarComponentType.Text);
-hasRectComponent :: #bake_arguments hasComponent(type = WarComponentType.Rect);
-hasButtonComponent :: #bake_arguments hasComponent(type = WarComponentType.Button);
-hasCursorComponent :: #bake_arguments hasComponent(type = WarComponentType.Cursor);
-hasAudioComponent :: #bake_arguments hasComponent(type = WarComponentType.Audio);
-
 addComponent :: (ctx: *WarContext, entity: *WarEntity, component: *$T/WarComponent) {
+    assert(ctx != null);
+    assert(ctx.scene != null);
     assert(entity != null);
     assert(component != null);
 
@@ -443,7 +393,9 @@ addComponent :: (ctx: *WarContext, entity: *WarEntity, component: *$T/WarCompone
     }
 }
 
-removeComponent :: (ctx: *WarContext, entity: *WarEntity, type: WarComponentType) {
+removeComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) {
+    assert(ctx != null);
+    assert(ctx.scene != null);
     assert(entity != null);
 
     manager := ctx.scene.componentsManager;
@@ -452,94 +404,24 @@ removeComponent :: (ctx: *WarContext, entity: *WarEntity, type: WarComponentType
         return;
     }
 
-    if type == {
-        case WarComponentType.Transform; {
-            removeAt(*manager.transforms, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Sprite; {
-            removeAt(*manager.sprites, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Unit; {
-            removeAt(*manager.units, index);
-            entity.components[type] =-1;
-        }
-        case WarComponentType.Animations; {
-            removeAt(*manager.animationss, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Road; {
-            removeAt(*manager.roads, index);
-            entity.components[type] =-1;
-        }
-        case WarComponentType.Wall; {
-            removeAt(*manager.walls, index);
-            entity.components[type] =-1;
-        }
-        case WarComponentType.Ruin; {
-            removeAt(*manager.ruins, index);
-            entity.components[type] =-1;
-        }
-        case WarComponentType.Forest; {
-            removeAt(*manager.forests, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Projectile; {
-            removeAt(*manager.projectiles, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.PoisonCloud; {
-            removeAt(*manager.poisonClouds, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Sight; {
-            removeAt(*manager.sights, index);
-            entity.components[type] =-1;
-        }
-        case WarComponentType.StateMachine; {
-            removeAt(*manager.stateMachines, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.UI; {
-            removeAt(*manager.uis, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Text; {
-            removeAt(*manager.texts, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Rect; {
-            removeAt(*manager.rects, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Button; {
-            removeAt(*manager.buttons, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Cursor; {
-            removeAt(*manager.cursors, index);
-            entity.components[type] = -1;
-        }
-        case WarComponentType.Audio; {
-            removeAt(*manager.audios, index);
-            entity.components[type] = -1;
-        }
-    }
-}
+    #if (type == WarComponentType.Transform)        removeAt(*manager.transforms, index);
+    else if (type == WarComponentType.Sprite)       removeAt(*manager.sprites, index);
+    else if (type == WarComponentType.Unit)         removeAt(*manager.units, index);
+    else if (type == WarComponentType.Animations)   removeAt(*manager.animationss, index);
+    else if (type == WarComponentType.Road)         removeAt(*manager.roads, index);
+    else if (type == WarComponentType.Wall)         removeAt(*manager.walls, index);
+    else if (type == WarComponentType.Ruin)         removeAt(*manager.ruins, index);
+    else if (type == WarComponentType.Forest)       removeAt(*manager.forests, index);
+    else if (type == WarComponentType.Projectile)   removeAt(*manager.projectiles, index);
+    else if (type == WarComponentType.PoisonCloud)  removeAt(*manager.poisonClouds, index);
+    else if (type == WarComponentType.Sight)        removeAt(*manager.sights, index);
+    else if (type == WarComponentType.StateMachine) removeAt(*manager.stateMachines, index);
+    else if (type == WarComponentType.UI)           removeAt(*manager.uis, index);
+    else if (type == WarComponentType.Text)         removeAt(*manager.texts, index);
+    else if (type == WarComponentType.Rect)         removeAt(*manager.rects, index);
+    else if (type == WarComponentType.Button)       removeAt(*manager.buttons, index);
+    else if (type == WarComponentType.Cursor)       removeAt(*manager.cursors, index);
+    else if (type == WarComponentType.Audio)        removeAt(*manager.audios, index);
 
-removeTransformComponent :: #bake_arguments removeComponent(type = WarComponentType.Transform);
-removeSpriteComponent :: #bake_arguments removeComponent(type = WarComponentType.Sprite);
-removeUnitComponent :: #bake_arguments removeComponent(type = WarComponentType.Unit);
-removeAnimationsComponent :: #bake_arguments removeComponent(type = WarComponentType.Animations);
-removeRoadComponent :: #bake_arguments removeComponent(type = WarComponentType.Road);
-removeWallComponent :: #bake_arguments removeComponent(type = WarComponentType.Wall);
-removeRuinComponent :: #bake_arguments removeComponent(type = WarComponentType.Ruin);
-removeForestComponent :: #bake_arguments removeComponent(type = WarComponentType.Forest);
-removeStateMachineComponent :: #bake_arguments removeComponent(type = WarComponentType.StateMachine);
-removeUIComponent :: #bake_arguments removeComponent(type = WarComponentType.UI);
-removeTextComponent :: #bake_arguments removeComponent(type = WarComponentType.Text);
-removeRectComponent :: #bake_arguments removeComponent(type = WarComponentType.Rect);
-removeButtonComponent :: #bake_arguments removeComponent(type = WarComponentType.Button);
-removeCursorComponent :: #bake_arguments removeComponent(type = WarComponentType.Cursor);
-removeAudioComponent :: #bake_arguments removeComponent(type = WarComponentType.Audio);
+    entity.components[type] = -1;
+}

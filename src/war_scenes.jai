@@ -3,6 +3,7 @@ WarSceneType :: enum {
     Blizzard;
     MainMenu;
     Briefing;
+    Map;
 
     Count;
 }
@@ -15,29 +16,43 @@ WarScene :: struct {
     // cheatStatus: WarCheatStatus;
 }
 
-// union
-// {
-//     struct
-//     {
-//         WarSceneDownloadState status;
-//     } download;
+WarSceneDownloadState :: enum {
+    Download;
+    Confirm;
+    Downloading;
+    Downloaded;
+    FileLoaded;
+    Failed;
+}
 
-//     struct
-//     {
-//         f32 time;
-//     } blizzard;
+WarDownloadScene :: struct {
+    using base: WarScene;
+    base.type = WarSceneType.Download;
 
-//     struct
-//     {
-//         WarRace yourRace;
-//         WarRace enemyRace;
-//         s32 customMap;
-//     } menu;
+    status: WarSceneDownloadState;
+}
 
-//     struct
-//     {
-//         f32 time;
-//         WarRace race;
-//         WarCampaignMapType mapType;
-//     } briefing;
-// };
+WarBlizzardScene :: struct {
+    using base: WarScene;
+    base.type = WarSceneType.Blizzard;
+
+    time: f32;
+}
+
+WarMenuScene :: struct {
+    using base: WarScene;
+    base.type = WarSceneType.MainMenu;
+
+    yourRace: WarRace;
+    enemyRace: WarRace;
+    customMap: s32;
+}
+
+WarBriefingScene :: struct {
+    using base: WarScene;
+    base.type = WarSceneType.Briefing;
+
+    time: f32;
+    race: WarRace;
+    mapType: WarCampaignMapType;
+}
