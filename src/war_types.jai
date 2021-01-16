@@ -16,29 +16,6 @@ WarResourceKind :: enum {
     Wood;
 }
 
-WarSpriteFrame :: struct {
-    dx: u8;
-    dy: u8;
-    w: u8;
-    h: u8;
-    off: u32;
-    data: *u8;
-}
-
-WarSprite :: struct {
-    image: s32;
-    frameWidth: s32;
-    frameHeight: s32;
-    framesCount: s32;
-    frames: [MAX_SPRITE_FRAME_COUNT] WarSpriteFrame;
-}
-
-WarSpriteResourceRef :: struct {
-    resourceIndex: s32;
-    frameIndicesCount: s32;
-    frameIndices: [MAX_SPRITE_FRAME_COUNT] s32;
-}
-
 WarAnimationStatus :: enum {
     NotStarted;
     Running;
@@ -393,28 +370,7 @@ WarUnitType :: enum {
     OrcCorpse;
 }
 
-WarEntityId :: u16;
 
-WarEntityType :: enum {
-    None;
-    Image;
-    Unit;
-    Road;
-    Wall;
-    Ruin;
-    Forest;
-    Text;
-    Rect;
-    Button;
-    Cursor;
-    Audio;
-    Projectile;
-    RainOfFire;
-    PoisonCloud;
-    Sight;
-    Minimap;
-    Animation;
-}
 
 WarRoadPieceType :: enum {
     Left;
@@ -729,13 +685,6 @@ WarStateCast :: struct {
     spellType: WarSpellType;
     targetEntityId: WarEntityId;
     targetTile: Vec2;
-}
-
-WarEntity :: struct {
-    id: WarEntityId;
-    type: WarEntityType;
-    enabled: bool;
-    components: [WarComponentType.Count] s16;
 }
 
 //

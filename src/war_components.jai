@@ -24,6 +24,7 @@ WarComponentType :: enum {
 WarComponent :: struct {
     enabled: bool;
     type: WarComponentType;
+    index: s32;
     entityId: WarEntityId;
 }
 
@@ -362,35 +363,70 @@ hasComponent :: inline (ctx: *WarContext, entity: *WarEntity, type: WarComponent
     return entity.components[type] >= 0;
 }
 
-addComponent :: (ctx: *WarContext, entity: *WarEntity, component: *$T/WarComponent) {
+createComponent :: (ctx: *WarContext, $type: WarComponentType) -> *WarComponent {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+
+    index: s64 = -1;
+    component: *WarComponent = null;
+
+    manager := ctx.scene.componentsManager;
+    #if (type == WarComponentType.Transform) {
+        index, component = addNew(*manager.transforms);
+    } else if (type == WarComponentType.Sprite) {
+        index, component = addNew(*manager.sprites);
+    } else if (type == WarComponentType.Unit) {
+        index, component = addNew(*manager.units);
+    } else if (type == WarComponentType.Animations) {
+        index, component = addNew(*manager.animationss);
+    } else if (type == WarComponentType.Road) {
+        index, component = addNew(*manager.roads);
+    } else if (type == WarComponentType.Wall) {
+        index, component = addNew(*manager.walls);
+    } else if (type == WarComponentType.Ruin) {
+        index, component = addNew(*manager.ruins);
+    } else if (type == WarComponentType.Forest) {
+        index, component = addNew(*manager.forests);
+    } else if (type == WarComponentType.Projectile) {
+        index, component = addNew(*manager.projectiles);
+    } else if (type == WarComponentType.PoisonCloud) {
+        index, component = addNew(*manager.poisonClouds);
+    } else if (type == WarComponentType.Sight) {
+        index, component = addNew(*manager.sights);
+    } else if (type == WarComponentType.StateMachine) {
+        index, component = addNew(*manager.stateMachines);
+    } else if (type == WarComponentType.UI) {
+        index, component = addNew(*manager.uis);
+    } else if (type == WarComponentType.Text) {
+        index, component = addNew(*manager.texts);
+    } else if (type == WarComponentType.Rect) {
+        index, component = addNew(*manager.rects);
+    } else if (type == WarComponentType.Button) {
+        index, component = addNew(*manager.buttons);
+    } else if (type == WarComponentType.Cursor) {
+        index, component = addNew(*manager.cursors);
+    } else if (type == WarComponentType.Audio) {
+        index, component = addNew(*manager.audios);
+    } else {
+        logError("Unkown component type: %\n", type);
+    }
+
+    if (component != null) {
+        component.enabled = true;
+        component.type = type;
+        component.index = cast(s32) index;
+    }
+
+    return component;
+}
+
+addComponent :: (ctx: *WarContext, entity: *WarEntity, component: *WarComponent) {
     assert(ctx != null);
     assert(ctx.scene != null);
     assert(entity != null);
-    assert(component != null);
 
     component.entityId = entity.id;
-
-    manager := ctx.scene.componentsManager;
-    if component.type == {
-        case WarComponentType.Transform;     entity.components[component.type] = add(*manager.transforms, component);
-        case WarComponentType.Sprite;        entity.components[component.type] = add(*manager.sprites, component);
-        case WarComponentType.Unit;          entity.components[component.type] = add(*manager.units, component);
-        case WarComponentType.Animations;    entity.components[component.type] = add(*manager.animationss, component);
-        case WarComponentType.Road;          entity.components[component.type] = add(*manager.roads, component);
-        case WarComponentType.Wall;          entity.components[component.type] = add(*manager.walls, component);
-        case WarComponentType.Ruin;          entity.components[component.type] = add(*manager.ruins, component);
-        case WarComponentType.Forest;        entity.components[component.type] = add(*manager.forests, component);
-        case WarComponentType.Projectile;    entity.components[component.type] = add(*manager.projectiles, component);
-        case WarComponentType.PoisonCloud;   entity.components[component.type] = add(*manager.poisonClouds, component);
-        case WarComponentType.Sight;         entity.components[component.type] = add(*manager.sights, component);
-        case WarComponentType.StateMachine;  entity.components[component.type] = add(*manager.stateMachines, component);
-        case WarComponentType.UI;            entity.components[component.type] = add(*manager.uis, component);
-        case WarComponentType.Text;          entity.components[component.type] = add(*manager.texts, component);
-        case WarComponentType.Rect;          entity.components[component.type] = add(*manager.rects, component);
-        case WarComponentType.Button;        entity.components[component.type] = add(*manager.buttons, component);
-        case WarComponentType.Cursor;        entity.components[component.type] = add(*manager.cursors, component);
-        case WarComponentType.Audio;         entity.components[component.type] = add(*manager.audios, component);
-    }
+    entity.components[component.type] = component.index;
 }
 
 removeComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) {

@@ -11,9 +11,11 @@
 #load "war_database.jai";
 #load "war_file.jai";
 #load "war_resources.jai";
+#load "war_sprites.jai";
 #load "war_audio.jai";
 #load "war_pathfinding.jai";
 #load "war_components.jai";
+#load "war_entities.jai";
 #load "war_scenes.jai";
 #load "war_game.jai";
 

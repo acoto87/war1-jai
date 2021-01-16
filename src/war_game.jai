@@ -67,8 +67,8 @@ initGame :: (ctx: *WarContext) -> bool {
             return false;
         }
 
-        // WarScene* scene = createScene(ctx, WAR_SCENE_BLIZZARD);
-        // setNextScene(ctx, scene, 0.0);
+        scene := createScene(ctx, WarSceneType.Blizzard);
+        setNextScene(ctx, scene, 0.0);
     }
     // else
     // {
@@ -214,6 +214,39 @@ inputGame :: (ctx: *WarContext) {
                                   glfwGetKey(ctx.window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS);
 }
 
+updateGame :: (ctx: *WarContext)
+{
+    input := *ctx.input;
+
+    if (isKeyPressed(input, WarKeys.Ctrl) && wasKeyPressed(input, WarKeys.P)) {
+        ctx.paused = !ctx.paused;
+    }
+
+    if (ctx.paused) {
+        return;
+    }
+
+    if (ctx.nextScene) {
+        ctx.audioEnabled = false;
+
+        leaveScene(ctx);
+
+        ctx.scene = ctx.nextScene;
+        ctx.nextScene = null;
+
+        enterScene(ctx);
+
+        ctx.audioEnabled = true;
+    }
+
+    if (ctx.transitionDelay > 0) {
+        ctx.transitionDelay = max(ctx.transitionDelay - ctx.deltaTime, 0.0);
+        return;
+    }
+
+    updateScene(ctx);
+}
+
 renderGame :: (ctx: *WarContext) {
     gfx := ctx.gfx;
 
@@ -229,17 +262,13 @@ renderGame :: (ctx: *WarContext) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // don't render anything if it's transitioning
-    if (ctx.transitionDelay > 0)
-    {
+    if (ctx.transitionDelay > 0) {
         return;
     }
 
     nvgBeginFrame(gfx, cast(f32) windowWidth, cast(f32) windowHeight, devicePixelRatio);
 
-    nvgBeginPath(gfx);
-    nvgRect(gfx, 10, 10, 100, 100);
-    nvgFillColor(gfx, nvgRGBAf(1, 0, 0, 1));
-    nvgFill(gfx);
+    renderScene(ctx);
 
     nvgEndFrame(gfx);
 }
