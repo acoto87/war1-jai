@@ -420,6 +420,34 @@ createComponent :: (ctx: *WarContext, $type: WarComponentType) -> *WarComponent 
     return component;
 }
 
+createComponent :: (ctx: *WarContext, $type: Type) -> *type {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+
+    #if (type == WarTransformComponent)         return cast(*type) createComponent(ctx, WarComponentType.Transform);
+    else if (type == WarSpriteComponent)        return cast(*type) createComponent(ctx, WarComponentType.Sprite);
+    else if (type == WarUnitComponent)          return cast(*type) createComponent(ctx, WarComponentType.Unit);
+    else if (type == WarAnimationsComponent)    return cast(*type) createComponent(ctx, WarComponentType.Animations);
+    else if (type == WarRoadComponent)          return cast(*type) createComponent(ctx, WarComponentType.Road);
+    else if (type == WarWallComponent)          return cast(*type) createComponent(ctx, WarComponentType.Wall);
+    else if (type == WarRuinComponent)          return cast(*type) createComponent(ctx, WarComponentType.Ruin);
+    else if (type == WarForestComponent)        return cast(*type) createComponent(ctx, WarComponentType.Forest);
+    else if (type == WarProjectileComponent)    return cast(*type) createComponent(ctx, WarComponentType.Projectile);
+    else if (type == WarPoisonCloudComponent)   return cast(*type) createComponent(ctx, WarComponentType.PoisonCloud);
+    else if (type == WarSightComponent)         return cast(*type) createComponent(ctx, WarComponentType.Sight);
+    else if (type == WarStateMachineComponent)  return cast(*type) createComponent(ctx, WarComponentType.StateMachine);
+    else if (type == WarUIComponent)            return cast(*type) createComponent(ctx, WarComponentType.UI);
+    else if (type == WarTextComponent)          return cast(*type) createComponent(ctx, WarComponentType.Text);
+    else if (type == WarRectComponent)          return cast(*type) createComponent(ctx, WarComponentType.Rect);
+    else if (type == WarButtonComponent)        return cast(*type) createComponent(ctx, WarComponentType.Button);
+    else if (type == WarCursorComponent)        return cast(*type) createComponent(ctx, WarComponentType.Cursor);
+    else if (type == WarAudioComponent)         return cast(*type) createComponent(ctx, WarComponentType.Audio);
+    else {
+        logError("Unkown component type: %\n", type);
+        return null;
+    }
+}
+
 addComponent :: (ctx: *WarContext, entity: *WarEntity, component: *WarComponent) {
     assert(ctx != null);
     assert(ctx.scene != null);

@@ -2,7 +2,7 @@ enterSceneBlizzard :: (ctx: *WarContext) {
     scene := cast(*WarBlizzardScene) ctx.scene;
     scene.time = 3.0;
 
-    createUIImage(context, "imgBackground", imageResourceRef(216), VEC2_ZERO);
+    createUIImage(ctx, "imgBackground", imageResourceRef(216), VEC2_ZERO);
     // createAudio(context, WAR_LOGO, true);
 }
 

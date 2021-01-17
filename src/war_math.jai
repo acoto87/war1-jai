@@ -24,8 +24,16 @@ vec2 :: inline (x: f32, y: f32) -> Vec2 {
     return r;
 }
 
+vec2 :: inline (x: s32, y: s32) -> Vec2 {
+    return vec2(cast(f32) x, cast(f32) y);
+}
+
 isZero :: inline (v: Vec2) -> bool {
     return v == VEC2_ZERO;
+}
+
+isOne :: inline (v: Vec2) -> bool {
+    return v == VEC2_ONE;
 }
 
 lengthSqr :: inline (v: Vec2) -> f32 {
@@ -156,7 +164,7 @@ bottomLeft :: inline (r: Rect) -> Vec2 { return vec2(r.x, r.y + r.h); }
 bottomRight :: inline (r: Rect) -> Vec2 { return vec2(r.x + r.w, r.y + r.h); }
 size :: inline (r: Rect) -> Vec2 { return vec2(r.w, r.h); }
 
-rectf :: inline (x: f32, y: f32, w: f32, h: f32) -> Rect {
+rect :: inline (x: f32, y: f32, w: f32, h: f32) -> Rect {
     r: Rect = ---;
     r.x = x;
     r.y = y;
@@ -165,25 +173,20 @@ rectf :: inline (x: f32, y: f32, w: f32, h: f32) -> Rect {
     return r;
 }
 
-recti :: inline (x: s32, y: s32, w: s32, h: s32) -> Rect {
-    r: Rect = ---;
-    r.x = cast(f32) x;
-    r.y = cast(f32) y;
-    r.w = cast(f32) w;
-    r.h = cast(f32) h;
-    return r;
+rect :: inline (x: s32, y: s32, w: s32, h: s32) -> Rect {
+    return rect(cast(f32) x, cast(f32) y, cast(f32) w, cast(f32) h);
 }
 
-rectpf :: inline (x1: f32, y1: f32, x2: f32, y2: f32) -> Rect {
-    return rectf(min(x1, x2), min(y1, y2), abs(x1 - x2), abs(y1 - y2));
+rectp :: inline (x1: f32, y1: f32, x2: f32, y2: f32) -> Rect {
+    return rect(min(x1, x2), min(y1, y2), abs(x1 - x2), abs(y1 - y2));
 }
 
-rectv :: inline (pos: Vec2, size: Vec2) -> Rect {
-    return rectf(pos.x, pos.y, size.x, size.y);
+rect :: inline (pos: Vec2, size: Vec2) -> Rect {
+    return rect(pos.x, pos.y, size.x, size.y);
 }
 
-rects :: inline (size: Vec2) -> Rect {
-    return rectf(0.0, 0.0, size.x, size.y);
+rect :: inline (size: Vec2) -> Rect {
+    return rect(0.0, 0.0, size.x, size.y);
 }
 
 contains :: inline (r: Rect, x: f32, y: f32) -> bool {
@@ -197,7 +200,7 @@ intersects :: inline (r1: Rect, r2: Rect) -> bool {
 }
 
 scale :: inline (r: Rect, s: f32) -> Rect {
-    return rectf(
+    return rect(
         r.x * s,
         r.y * s,
         r.w * s,
@@ -206,7 +209,7 @@ scale :: inline (r: Rect, s: f32) -> Rect {
 }
 
 translate :: inline (r: Rect, x: f32, y: f32) -> Rect {
-    return rectf(
+    return rect(
         r.x + x,
         r.y + y,
         r.w,
@@ -219,7 +222,7 @@ center :: inline (r: Rect) -> Vec2 {
 }
 
 expand :: inline (r: Rect, dx: f32, dy: f32) -> Rect {
-    return rectf(
+    return rect(
         r.x - dx,
         r.y - dy,
         r.w + dx * 2,

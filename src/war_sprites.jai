@@ -1,8 +1,8 @@
 WarSpriteFrame :: struct {
-    dx: u8;
-    dy: u8;
-    w: u8;
-    h: u8;
+    dx: s32;
+    dy: s32;
+    w: s32;
+    h: s32;
     off: u32;
     data: *u8;
 }
@@ -21,7 +21,7 @@ WarSpriteResourceRef :: struct {
     frameIndices: [MAX_SPRITE_FRAME_COUNT] s32;
 }
 
-createSprite :: (ctx: *WarContext, width: u32, height: u32, data: [] u8) -> WarSprite {
+createSprite :: (ctx: *WarContext, width: s32, height: s32, data: *u8) -> WarSprite {
     assert(ctx != null);
     assert(width >= 0 && height >= 0);
 
@@ -30,7 +30,7 @@ createSprite :: (ctx: *WarContext, width: u32, height: u32, data: [] u8) -> WarS
     sprite.frameHeight = height;
     sprite.framesCount = 1;
 
-    sprite.image = nvgCreateImageRGBA(ctx.gfx, width, height, NVG_IMAGE_NEAREST, data);
+    sprite.image = nvgCreateImageRGBA(ctx.gfx, width, height, .NVG_IMAGE_NEAREST, data);
 
     sprite.frames[0].dx = 0;
     sprite.frames[0].dy = 0;
@@ -46,7 +46,7 @@ createSprite :: (ctx: *WarContext, width: u32, height: u32, data: [] u8) -> WarS
     return sprite;
 }
 
-createSpriteFromFrames :: (ctx: *WarContext, frameWidth: u32, frameHeight: u32, frames: [] WarSpriteFrame) -> WarSprite {
+createSpriteFromFrames :: (ctx: *WarContext, frameWidth: s32, frameHeight: s32, frames: [] WarSpriteFrame) -> WarSprite {
     assert(ctx != null);
     assert(frameWidth >= 0 && frameHeight >= 0);
     assert(frames.count > 0);
@@ -54,9 +54,9 @@ createSpriteFromFrames :: (ctx: *WarContext, frameWidth: u32, frameHeight: u32, 
     sprite: WarSprite;
     sprite.frameWidth = frameWidth;
     sprite.frameHeight = frameHeight;
-    sprite.framesCount = frames.count;
+    sprite.framesCount = cast(s32) frames.count;
 
-    sprite.image = nvgCreateImageRGBA(ctx.gfx, frameWidth, frameHeight, NVG_IMAGE_NEAREST, null);
+    sprite.image = nvgCreateImageRGBA(ctx.gfx, frameWidth, frameHeight, .NVG_IMAGE_NEAREST, null);
 
     for i : 0..frames.count-1 {
         sprite.frames[i].dx = frames[i].dx;
@@ -84,7 +84,7 @@ createSpriteFromResource :: (ctx: *WarContext, resource: *WarResource, frameIndi
     if resource.type == {
         case WarResourceType.Image; {
             imageResource := cast(*WarResourceImage) resource;
-            sprite = createSprite(ctx, imageResource.width, imageResource.height, imageResource.data);
+            sprite = createSprite(ctx, imageResource.width, imageResource.height, imageResource.pixels);
         }
         case WarResourceType.Sprite; {
             spriteResource := cast(*WarResourceSprite) resource;
@@ -92,18 +92,20 @@ createSpriteFromResource :: (ctx: *WarContext, resource: *WarResource, frameIndi
             frameWidth := spriteResource.frameWidth;
             frameHeight := spriteResource.frameHeight;
             framesCount := spriteResource.framesCount;
-            frames := spriteResource.frames;
+            frames := cast([] WarSpriteFrame) spriteResource.frames;
 
             if (frameIndices.count > 0) {
                 allFrames := frames;
 
                 frames = allocArray(WarSpriteFrame, frameIndices.count);
-                for frameIndex : frameIndices {
+                for i : 0..frameIndices.count-1 {
+                    frameIndex := frameIndices[i];
                     assert(frameIndex >= 0 && frameIndex < framesCount);
+
                     frames[i] = allFrames[frameIndex];
                 }
 
-                framesCount = frameIndices.count;
+                framesCount = cast(u16) frameIndices.count;
             }
 
             sprite = createSpriteFromFrames(ctx, frameWidth, frameHeight, frames);
@@ -113,35 +115,69 @@ createSpriteFromResource :: (ctx: *WarContext, resource: *WarResource, frameIndi
             }
         }
         case WarResourceType.Cursor; {
-            cursorResource := cast(*WarResource) resource;
-            sprite = createSprite(ctx, cursorResource.width, cursorResource.height, cursorResource.data);
+            cursorResource := cast(*WarResourceCursor) resource;
+            sprite = createSprite(ctx, cursorResource.width, cursorResource.height, cursorResource.pixels);
         }
         case; {
             logError("Trying to load the resource of type %d as a sprite.\n", resource.type);
             assert(false);
-            break;
         }
     }
 
     return sprite;
 }
 
-createSpriteFromResourceIndex :: (ctx: *WarContext, spriteResourceRef: WarSpriteResourceRef) -> WarSprite {
-    resource := getOrCreateResource(WarResourceSprite, ctx, spriteResourceRef.resourceIndex);
+createSpriteFromResourceRef :: (ctx: *WarContext, spriteResourceRef: WarSpriteResourceRef) -> WarSprite {
+    resource := getOrCreateResource(WarResourceSprite, ctx, cast(u32) spriteResourceRef.resourceIndex);
     return createSpriteFromResource(ctx, resource, spriteResourceRef.frameIndices);
 }
 
-updateSpriteImage :: (ctx: *WarContext, sprite: WarSprite, data: [] u8) {
-    if (!sprite.image) {
+createSpriteResourceRef :: (resourceIndex: s32, frameIndices: [] s32) -> WarSpriteResourceRef {
+    spriteResourceRef: WarSpriteResourceRef;
+    spriteResourceRef.resourceIndex = resourceIndex;
+    spriteResourceRef.frameIndicesCount = cast(s32) frameIndices.count;
+    if (frameIndices.count > 0) {
+        arrayCopy(frameIndices, spriteResourceRef.frameIndices);
+    }
+    return spriteResourceRef;
+}
+
+invalidResourceRef :: inline () -> WarSpriteResourceRef {
+    return createSpriteResourceRef(-1, s32.[]);
+}
+
+imageResourceRef :: (resourceIndex: s32) -> WarSpriteResourceRef {
+    return createSpriteResourceRef(resourceIndex, s32.[]);
+}
+
+imageResourceRefFromPlayer :: (player: *WarPlayerInfo, hIdx: s32, oIdx: s32) -> WarSpriteResourceRef {
+    return imageResourceRef(ifx player.race == WarRace.Humans then hIdx else oIdx);
+}
+
+spriteResourceRef :: (resourceIndex: s32, spriteIndex: s32) -> WarSpriteResourceRef {
+    frameIndices: [1] s32;
+    frameIndices[0] = spriteIndex;
+    return createSpriteResourceRef(resourceIndex, frameIndices);
+}
+
+spriteResourceRefFromPlayer :: (player: *WarPlayerInfo, hIdx: s32, oIdx: s32, spriteIndex: s32) -> WarSpriteResourceRef {
+    frameIndices: [1] s32;
+    frameIndices[0] = spriteIndex;
+    resourceIndex := ifx player.race == WarRace.Humans then hIdx else oIdx;
+    return createSpriteResourceRef(resourceIndex, frameIndices);
+}
+
+updateSpriteImage :: (ctx: *WarContext, sprite: WarSprite, imageData: [] u8) {
+    if (sprite.image == 0) {
         logWarning("Trying to update a sprite with image: %d\n", sprite.image);
         return;
     }
 
-    nvgUpdateImage(ctx.gfx, sprite.image, data);
+    nvgUpdateImage(ctx.gfx, sprite.image, imageData.data);
 }
 
 renderSubSprite :: (ctx: *WarContext, sprite: WarSprite, rs: Rect, rd: Rect, scale: Vec2) {
-    if (!sprite.image) {
+    if (sprite.image == 0) {
         logWarning("Trying to render a sprite with image: %d\n", sprite.image);
         return;
     }
@@ -150,32 +186,32 @@ renderSubSprite :: (ctx: *WarContext, sprite: WarSprite, rs: Rect, rd: Rect, sca
 }
 
 renderSprite :: (ctx: *WarContext, sprite: WarSprite, pos: Vec2, scale: Vec2) {
-    if (!sprite.image) {
+    if (sprite.image == 0) {
         logWarning("Trying to render a sprite with image: %d\n", sprite.image);
         return;
     }
 
     frameSize := vec2(sprite.frameWidth, sprite.frameHeight);
-    rs := rectv(VEC2_ZERO, frameSize);
-    rd := rectv(pos, frameSize);
+    rs := rect(VEC2_ZERO, frameSize);
+    rd := rect(pos, frameSize);
     nvgRenderSubImage(ctx.gfx, sprite.image, rs, rd, scale);
 }
 
 getSpriteFrame :: (ctx: *WarContext, sprite: WarSprite, frameIndex: s32) -> WarSpriteFrame {
-    assert(sprite.image);
+    assert(sprite.image != 0);
     assert(frameIndex >= 0 && frameIndex < sprite.framesCount);
     return sprite.frames[frameIndex];
 }
 
 freeSprite :: (ctx: *WarContext, sprite: WarSprite) {
-    if (!sprite.image) {
+    if (sprite.image == 0) {
         logWarning("Trying to free a sprite with image: %d\n", sprite.image);
         return;
     }
 
     for frame : sprite.frames {
-        if (sprite.frames[i].data) {
-            free(sprite.frames[i].data);
+        if (frame.data) {
+            free(frame.data);
         }
     }
 

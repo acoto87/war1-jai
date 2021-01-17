@@ -1,3 +1,110 @@
+
+isButtonPressed :: inline (input: *WarInput, btn: WarMouseButtons) -> bool {
+    return input.buttons[cast(s32) btn].pressed;
+}
+
+wasButtonPressed :: inline (input: *WarInput, btn: WarMouseButtons) -> bool {
+    return input.buttons[cast(s32) btn].wasPressed;
+}
+
+isKeyPressed :: inline (input: *WarInput, key: WarKeys) -> bool {
+    return input.keys[cast(s32) key].pressed;
+}
+
+wasKeyPressed :: inline (input: *WarInput, key: WarKeys) -> bool {
+    return input.keys[cast(s32) key].wasPressed;
+}
+
+setWindowSize :: (ctx: *WarContext, width: s32, height: s32) {
+    ctx.windowWidth = width;
+    ctx.windowHeight = height;
+    glfwSetWindowSize(ctx.window, ctx.windowWidth, ctx.windowHeight);
+    glfwGetFramebufferSize(ctx.window, *ctx.framebufferWidth, *ctx.framebufferHeight);
+    ctx.devicePixelRatio = cast(f32) ctx.framebufferWidth / cast(f32) ctx.windowWidth;
+}
+
+setGlobalScale :: (ctx: *WarContext, scale: f32) {
+    ctx.globalScale = max(scale, 1.0);
+    logDebug("set global scale to: %\n", ctx.globalScale);
+
+    newWidth := cast(s32) (ctx.originalWindowWidth * ctx.globalScale);
+    newHeight := cast(s32) (ctx.originalWindowHeight * ctx.globalScale);
+    setWindowSize(ctx, newWidth, newHeight);
+}
+
+changeGlobalScale :: (ctx: *WarContext, deltaScale: f32) {
+    setGlobalScale(ctx, ctx.globalScale + deltaScale);
+}
+
+setGlobalSpeed :: (ctx: *WarContext, speed: f32) {
+    ctx.globalSpeed = max(speed, 1.0);
+    logDebug("set global speed to: %\n", ctx.globalSpeed);
+}
+
+changeGlobalSpeed :: (ctx: *WarContext, deltaSpeed: f32) {
+    setGlobalSpeed(ctx, ctx.globalSpeed + deltaSpeed);
+}
+
+setMusicVolume :: (ctx: *WarContext, volume: f32) {
+    ctx.musicVolume = clamp(volume, 0.0, 1.0);
+    logDebug("set music volume to: %\n", ctx.musicVolume);
+}
+
+changeMusicVolume :: (ctx: *WarContext, deltaVolume: f32) {
+    setMusicVolume(ctx, ctx.musicVolume + deltaVolume);
+}
+
+setSoundVolume :: (ctx: *WarContext, volume: f32) {
+    ctx.soundVolume = clamp(volume, 0.0, 1.0);
+    logDebug("set sound volume to: %\n", ctx.soundVolume);
+}
+
+changeSoundVolume :: (ctx: *WarContext, deltaVolume: f32) {
+    setSoundVolume(ctx, ctx.soundVolume + deltaVolume);
+}
+
+getDirFromArrowKeys :: (ctx: *WarContext) -> Vec2 {
+    input := *ctx.input;
+
+    dir := VEC2_ZERO;
+
+    if (isKeyPressed(input, WarKeys.Left)) {
+        dir.x = -1;
+    } else if (isKeyPressed(input, WarKeys.Right)) {
+        dir.x = 1;
+    }
+
+    if (isKeyPressed(input, WarKeys.Down)) {
+        dir.y = 1;
+    } else if (isKeyPressed(input, WarKeys.Up)) {
+        dir.y = -1;
+    }
+
+    dir = normalize(dir);
+    return dir;
+}
+
+getDirFromMousePos :: (ctx: *WarContext) -> Vec2 {
+    input := *ctx.input;
+
+    dir := VEC2_ZERO;
+
+    if (input.pos.x < MAP_EDGE_SCROLL_GAP) {
+        dir.x = -1;
+    } else if (input.pos.x > ctx.originalWindowWidth - MAP_EDGE_SCROLL_GAP) {
+        dir.x = 1;
+    }
+
+    if (input.pos.y < MAP_EDGE_SCROLL_GAP) {
+        dir.y = -1;
+    } else if (input.pos.y > ctx.originalWindowHeight - MAP_EDGE_SCROLL_GAP) {
+        dir.y = 1;
+    }
+
+    dir = normalize(dir);
+    return dir;
+}
+
 initGame :: (ctx: *WarContext) -> bool {
     glfwWindowHint(GLFW_RESIZABLE, 0);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
