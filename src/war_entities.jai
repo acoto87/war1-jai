@@ -25,7 +25,7 @@ WarEntity :: struct {
     id: WarEntityId;
     type: WarEntityType;
     enabled: bool;
-    components: [WarComponentType.Count] s32;
+    components: [#run getCount(WarComponentType)] s32;
 }
 
 WarEntityManager :: struct {
@@ -62,26 +62,26 @@ createEntity :: (ctx: *WarContext, type: WarEntityType) -> *WarEntity {
 
     staticEntityId += 1;
 
-    manager := ctx.scene.entityManager;
+    entityManager := *ctx.scene.entityManager;
 
-    entity := addNew(*manager.entities);
+    entity := addNew(*entityManager.entities);
     entity.id = staticEntityId;
     entity.type = type;
     entity.enabled = true;
 
-    for i : 0..cast(s32) WarComponentType.Count - 1 {
+    for i : 0..getCount(WarComponentType)-1 {
         entity.components[i] = -1;
     }
 
-    set(*manager.entitiesById, entity.id, entity);
+    set(*entityManager.entitiesById, entity.id, entity);
 
-    found, entitiesOfType := ref(*manager.entitiesByType, type);
+    found, entitiesOfType := ref(*entityManager.entitiesByType, type);
     if (found) {
         add(entitiesOfType, entity);
     }
 
     if (isUIEntity(entity)) {
-        add(*manager.uiEntities, entity);
+        add(*entityManager.uiEntities, entity);
     }
 
     return entity;
@@ -115,7 +115,7 @@ initEntityManager :: (manager: *WarEntityManager) {
 
     for entry : iterate(WarEntityType) {
         list: List(*WarEntity);
-        init(*list, List(*WarEntity).{
+        init(*list, ListOptions(*WarEntity).{
             equalsFn = equalsEntity
         });
         set(*manager.entitiesByType, entry.value, list);
@@ -128,21 +128,29 @@ initEntityManager :: (manager: *WarEntityManager) {
 
     for entry : iterate(WarUnitType) {
         list: List(*WarEntity);
-        init(*list, List(*WarEntity).{
+        init(*list, ListOptions(*WarEntity).{
             equalsFn = equalsEntity
         });
         set(*manager.unitsByType, entry.value, list);
     }
 
     // initialize the entities by id map
-    init(*manager.entitiesById, HashMap(WarEntityId, *WarEntity).{
+    init(*manager.entitiesById, HashMapOptions(WarEntityId, *WarEntity).{
         hashFn = hashEntityId
     });
 
     // initialize ui entities list
-    init(*manager.uiEntities, List(*WarEntity).{
+    init(*manager.uiEntities, ListOptions(*WarEntity).{
         equalsFn = equalsEntity
     });
+}
+
+freeEntityManager :: (entityManager: *WarEntityManager) {
+    uninit(*entityManager.entities);
+    uninit(*entityManager.entitiesByType);
+    uninit(*entityManager.unitsByType);
+    uninit(*entityManager.entitiesById);
+    uninit(*entityManager.uiEntities);
 }
 
 getEntities :: (ctx: *WarContext) -> *List(WarEntity) {
@@ -182,7 +190,7 @@ getUnitsOfPlayer :: (ctx: *WarContext, player: u8) -> List(*WarEntity) {
 
     entities := getEntitiesOfType(ctx, WarEntityType.Unit);
     for entity : entities {
-        unit := getComponent(WarUnitComponent, ctx, entity, WarComponentType.Unit);
+        unit := getComponent(ctx, entity, WarUnitComponent);
         if (unit.player == player) {
             add(*unitsOfPlayer, entity);
         }
@@ -202,7 +210,7 @@ getUnitsOfTypeOfPlayer :: (ctx: *WarContext, type: WarUnitType, player: u8) -> L
 
     entities := getUnitsOfType(ctx, type);
     for entity : entities {
-        unit := getComponent(WarUnitComponent, ctx, entity, WarComponentType.Unit);
+        unit := getComponent(ctx, entity, WarUnitComponent);
         if (unit.player == player) {
             add(*unitsOfPlayer, entity);
         }
@@ -219,6 +227,71 @@ getUIEntities :: (ctx: *WarContext) -> List(*WarEntity) {
     return entityManager.uiEntities;
 }
 
+renderEntity :: (ctx: *WarContext, entity: *WarEntity) {
+    assert(ctx != null);
+    assert(entity != null);
+
+    gfx := ctx.gfx;
+
+    if (entity.id > 0 && entity.enabled) {
+        renderFn := renderFns[cast(s32) entity.type];
+        if (!renderFn) {
+            logError("Entity of type % can't be render. renderFn = NULL\n", entity.type);
+            return;
+        }
+
+        nvgSave(gfx);
+        renderFn(ctx, entity);
+        nvgRestore(gfx);
+    }
+}
+
 #scope_file
 
 staticEntityId: WarEntityId = 0;
+
+WarRenderFunc :: #type (ctx: *WarContext, entity: *WarEntity);
+
+renderFns : [] WarRenderFunc = .[
+    null,        // NONE
+    renderImage, // IMAGE
+    null,        // UNIT
+    null,        // ROAD
+    null,        // WALL
+    null,        // RUIN
+    null,        // FOREST
+    null,        // TEXT
+    null,        // RECT
+    null,        // BUTTON
+    renderImage, // CURSOR
+    null,        // AUDIO
+    null,        // PROJECTILE
+    null,        // RAIN_OF_FIRE
+    null,        // POISON_CLOUD
+    null,        // SIGHT
+    null,        // MINIMAP
+    null,        // ANIMATION
+];
+
+renderImage :: (ctx: *WarContext, entity: *WarEntity) {
+    gfx := ctx.gfx;
+
+    transform := getComponent(ctx, entity, WarTransformComponent);
+    ui := getComponent(ctx, entity, WarUIComponent);
+    sprite := getComponent(ctx, entity, WarSpriteComponent);
+
+    if (ui.enabled && sprite.enabled && sprite.frameIndex >= 0) {
+        nvgSave(gfx);
+
+        if (sprite.sprite.framesCount > 1) {
+            frame := getSpriteFrame(ctx, sprite.sprite, sprite.frameIndex);
+            updateSpriteImage(ctx, sprite.sprite, frame.data);
+
+            nvgTranslate(gfx, cast(f32) -frame.dx, cast(f32) -frame.dy);
+        }
+
+        nvgTranslate(gfx, transform.position.x, transform.position.y);
+        renderSprite(ctx, sprite.sprite, VEC2_ZERO, VEC2_ONE);
+        nvgRestore(gfx);
+    }
+}

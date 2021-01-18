@@ -174,10 +174,10 @@ assets :: DatabaseEntry.[
     .{ 140, DatabaseEntryType.LevelInfo,        "orcs_12",                                      0, 0, 0 },
 
     // Custom
-    .{ 141, DatabaseEntryType.Unknown,           "battle_test_map_1",                            1, 0, 0 }, // test map, just several footmans and archers against grunts and spearmans, player control humans
-    .{ 142, DatabaseEntryType.Unknown,           "battle_test_map_2",                            1, 0, 0 }, // test map, several footmans and archers attacking an orc camp with few grunts and spearmans, player controls humans
-    .{ 143, DatabaseEntryType.Unknown,           "battle_test_map_3",                            1, 0, 0 }, // test map, several footmans and archers attacking an orc camp with few grunts and spearmans, player controls orcs
-    .{ 144, DatabaseEntryType.Unknown,           "battle_test_map_4",                            1, 0, 0 }, // test map, several grunts and spearmans attacking a human camp with few footmans and archers, player controls orcs
+    .{ 141, DatabaseEntryType.Unknown,          "battle_test_map_1",                            1, 0, 0 }, // test map, just several footmans and archers against grunts and spearmans, player control humans
+    .{ 142, DatabaseEntryType.Unknown,          "battle_test_map_2",                            1, 0, 0 }, // test map, several footmans and archers attacking an orc camp with few grunts and spearmans, player controls humans
+    .{ 143, DatabaseEntryType.Unknown,          "battle_test_map_3",                            1, 0, 0 }, // test map, several footmans and archers attacking an orc camp with few grunts and spearmans, player controls orcs
+    .{ 144, DatabaseEntryType.Unknown,          "battle_test_map_4",                            1, 0, 0 }, // test map, several grunts and spearmans attacking a human camp with few footmans and archers, player controls orcs
     .{ 147, DatabaseEntryType.LevelInfo,        "forest_1",                                     0, 1, 0 },
     .{ 148, DatabaseEntryType.LevelInfo,        "forest_2",                                     0, 1, 0 },
     .{ 149, DatabaseEntryType.LevelInfo,        "forest_3",                                     0, 1, 0 },

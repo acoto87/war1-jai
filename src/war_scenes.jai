@@ -4,8 +4,6 @@ WarSceneType :: enum {
     MainMenu;
     Briefing;
     Map;
-
-    Count;
 }
 
 WarScene :: struct {
@@ -29,7 +27,7 @@ WarDownloadScene :: struct {
     using base: WarScene;
     base.type = WarSceneType.Download;
 
-    status: WarSceneDownloadState;
+    downloadState: WarSceneDownloadState;
 }
 
 WarBlizzardScene :: struct {
@@ -57,12 +55,41 @@ WarBriefingScene :: struct {
     mapType: WarCampaignMapType;
 }
 
-createScene :: (ctx: *WarContext, type: WarSceneType) -> *WarScene {
-    return null;
+createScene :: (ctx: *WarContext, $type: WarSceneType) -> *WarScene {
+    assert(ctx != null);
+
+    scene: *WarScene = null;
+
+    #if (type == WarSceneType.Download) {
+        scene = alloc(WarDownloadScene);
+    }
+    else if (type == WarSceneType.Blizzard) {
+        scene = alloc(WarBlizzardScene);
+    }
+    else if (type == WarSceneType.MainMenu) {
+        scene = alloc(WarMenuScene);
+    }
+    else if (type == WarSceneType.Briefing) {
+        scene = alloc(WarBriefingScene);
+    }
+    else if (type == WarSceneType.Map) {
+        // scene = alloc(WarMap);
+    }
+
+    if (scene != null) {
+        initEntityManager(*scene.entityManager);
+        initComponentsManager(*scene.componentsManager);
+    }
+
+    return scene;
 }
 
 freeScene :: (ctx: *WarContext, scene: *WarScene) {
+    assert(ctx != null);
+    assert(scene != null);
 
+    freeEntityManager(*scene.entityManager);
+    freeComponentsManager(*scene.componentsManager);
 }
 
 setNextScene :: (ctx: *WarContext, scene: *WarScene, transitionDelay: f32) {
@@ -74,15 +101,9 @@ enterScene :: (ctx: *WarContext) {
     assert(ctx != null);
     assert(ctx.scene != null);
 
-    if ctx.scene.type == {
-        // case WarSceneType.Download; enterSceneDownload();
-        case WarSceneType.Blizzard; enterSceneBlizzard(ctx);
-        // case WarSceneType.MainMenu; enterSceneMainMenu();
-        // case WarSceneType.Briefing; enterSceneBriefing();
-        // case WarSceneType.Map;      enterSceneMap();
-        case; {
-            logError("Unkown scene type: %\n", ctx.scene.type);
-        }
+    enterSceneFn := sceneDescriptors[cast(s32) ctx.scene.type].enterSceneFn;
+    if (enterSceneFn != null) {
+        enterSceneFn(ctx);
     }
 }
 
@@ -90,39 +111,30 @@ updateScene :: (ctx: *WarContext) {
     assert(ctx != null);
     assert(ctx.scene != null);
 
-    if ctx.scene.type == {
-        // case WarSceneType.Download; updateSceneDownload();
-        case WarSceneType.Blizzard; updateSceneBlizzard(ctx);
-        // case WarSceneType.MainMenu; updateSceneMainMenu();
-        // case WarSceneType.Briefing; updateSceneBriefing();
-        // case WarSceneType.Map;      updateSceneMap();
-        case; {
-            logError("Unkown scene type: %\n", ctx.scene.type);
-
-            // updateCheatsPanel(context);
-            // updateUIButtons(context, !cheatsEnabledAndVisible(scene));
-            // updateUICursor(context);
-            // updateAnimations(context);
-        }
+    updateSceneFn := sceneDescriptors[cast(s32) ctx.scene.type].updateSceneFn;
+    if (updateSceneFn != null) {
+        updateSceneFn(ctx);
+    } else {
+        // updateCheatsPanel(context);
+        // updateUIButtons(context, !cheatsEnabledAndVisible(scene));
+        // updateUICursor(context);
+        // updateAnimations(context);
     }
 }
 
 leaveScene :: (ctx: *WarContext) {
     assert(ctx != null);
-    assert(ctx.scene != null);
 
-    if ctx.scene.type == {
-        // case WarSceneType.Download; leaveSceneDownload();
-        // case WarSceneType.Blizzard; leaveSceneBlizzard(ctx);
-        // case WarSceneType.MainMenu; leaveSceneMainMenu();
-        // case WarSceneType.Briefing; leaveSceneBriefing();
-        // case WarSceneType.Map;      leaveSceneMap();
-        case; {
-            logError("Unkown scene type: %\n", ctx.scene.type);
+    if (ctx.scene == null) {
+        return;
+    }
 
-            freeScene(ctx, ctx.scene);
-            ctx.scene = null;
-        }
+    leaveSceneFn := sceneDescriptors[cast(s32) ctx.scene.type].leaveSceneFn;
+    if (leaveSceneFn != null) {
+        leaveSceneFn(ctx);
+    } else {
+        freeScene(ctx, ctx.scene);
+        ctx.scene = null;
     }
 }
 
@@ -134,7 +146,7 @@ renderScene :: (ctx: *WarContext) {
 
     uiEntities := getUIEntities(ctx);
     for entity : uiEntities {
-        // renderEntity(ctx, entity);
+        renderEntity(ctx, entity);
     }
 
     nvgRestore(gfx);
@@ -143,3 +155,21 @@ renderScene :: (ctx: *WarContext) {
 #scope_file
 
 #load "war_scene_blizzard.jai";
+
+WarSceneFn :: #type (ctx: *WarContext);
+
+WarSceneDescriptor :: struct {
+    type: WarSceneType;
+    enterSceneFn: WarSceneFn;
+    leaveSceneFn: WarSceneFn;
+    updateSceneFn: WarSceneFn;
+    renderSceneFn: WarSceneFn;
+}
+
+sceneDescriptors : [] WarSceneDescriptor = .[
+    .{ WarSceneType.Download, null,               null, null,                null },
+    .{ WarSceneType.Blizzard, enterSceneBlizzard, null, updateSceneBlizzard, null },
+    .{ WarSceneType.MainMenu, null,               null, null,                null },
+    .{ WarSceneType.Briefing, null,               null, null,                null },
+    .{ WarSceneType.Map,      null,               null, null,                null }
+];

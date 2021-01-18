@@ -65,7 +65,6 @@ nvgRenderBatchImage :: (gfx: *NVGcontext, batch: *NVGimageBatch, rs: Rect, rd: R
     cys: [] f32 = array(f32, ty, ty + th, ty,      ty,      ty + th, ty + th);
 
     for i : 0..6-1 {
-        x, y: f32;
         vertex := *batch.vertices[batch.nvertices];
         x, y := nvgTransformPoint(state.xform, pxs[i], pys[i]);
         nvgVset(vertex, x, y, cxs[i], cys[i]);

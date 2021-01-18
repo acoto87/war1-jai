@@ -321,8 +321,7 @@ inputGame :: (ctx: *WarContext) {
                                   glfwGetKey(ctx.window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS);
 }
 
-updateGame :: (ctx: *WarContext)
-{
+updateGame :: (ctx: *WarContext) {
     input := *ctx.input;
 
     if (isKeyPressed(input, WarKeys.Ctrl) && wasKeyPressed(input, WarKeys.P)) {
@@ -333,7 +332,7 @@ updateGame :: (ctx: *WarContext)
         return;
     }
 
-    if (ctx.nextScene) {
+    if (ctx.nextScene != null) {
         ctx.audioEnabled = false;
 
         leaveScene(ctx);
@@ -374,9 +373,7 @@ renderGame :: (ctx: *WarContext) {
     }
 
     nvgBeginFrame(gfx, cast(f32) windowWidth, cast(f32) windowHeight, devicePixelRatio);
-
     renderScene(ctx);
-
     nvgEndFrame(gfx);
 }
 

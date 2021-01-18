@@ -1,19 +1,25 @@
 enterSceneBlizzard :: (ctx: *WarContext) {
-    scene := cast(*WarBlizzardScene) ctx.scene;
-    scene.time = 3.0;
+    assert(ctx != null);
+    assert(ctx.scene != null);
+    assert(ctx.scene.type == WarSceneType.Blizzard);
 
-    createUIImage(ctx, "imgBackground", imageResourceRef(216), VEC2_ZERO);
+    scene := cast(*WarBlizzardScene) ctx.scene;
+    scene.time = 30.0;
+
+    createUIImage(ctx, "imgBackground", imageResourceRef(458), VEC2_ZERO);
     // createAudio(context, WAR_LOGO, true);
 }
 
 updateSceneBlizzard :: (ctx: *WarContext) {
-    scene := cast(*WarBlizzardScene) ctx.scene;
+    assert(ctx != null);
+    assert(ctx.scene != null);
+    assert(ctx.scene.type == WarSceneType.Blizzard);
 
+    scene := cast(*WarBlizzardScene) ctx.scene;
     scene.time -= ctx.deltaTime;
 
-    if (scene.time <= 0)
-    {
-        // WarScene* scene = createScene(context, WAR_SCENE_MAIN_MENU);
-        // setNextScene(context, scene, 0.3f);
+    if (scene.time <= 0) {
+        nextScene := createScene(ctx, WarSceneType.MainMenu);
+        setNextScene(ctx, nextScene, 0.3);
     }
 }

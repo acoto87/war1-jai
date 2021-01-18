@@ -5,9 +5,6 @@ createUIImage :: (ctx: *WarContext, name: string, spriteResourceRef: WarSpriteRe
     transform.position = position;
     addComponent(ctx, entity, transform);
 
-    frameIndicesCount: s32;
-    frameIndices: [MAX_SPRITE_FRAME_COUNT] s32;
-
     sprite := createComponent(ctx, WarSpriteComponent);
     sprite.resourceIndex = spriteResourceRef.resourceIndex;
     sprite.frameIndex = 0;

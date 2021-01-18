@@ -17,8 +17,6 @@ WarComponentType :: enum {
     Button;
     Cursor;
     Audio;
-
-    Count;
 }
 
 WarComponent :: struct {
@@ -323,6 +321,48 @@ WarComponentsManager :: struct {
     audios: StableList(WarAudioComponent);
 }
 
+initComponentsManager :: (componentsManager: *WarComponentsManager) {
+    init(*componentsManager.transforms);
+    init(*componentsManager.sprites);
+    init(*componentsManager.units);
+    init(*componentsManager.animationss);
+    init(*componentsManager.roads);
+    init(*componentsManager.walls);
+    init(*componentsManager.ruins);
+    init(*componentsManager.forests);
+    init(*componentsManager.projectiles);
+    init(*componentsManager.poisonClouds);
+    init(*componentsManager.sights);
+    init(*componentsManager.stateMachines);
+    init(*componentsManager.uis);
+    init(*componentsManager.texts);
+    init(*componentsManager.rects);
+    init(*componentsManager.buttons);
+    init(*componentsManager.cursors);
+    init(*componentsManager.audios);
+}
+
+freeComponentsManager :: (componentsManager: *WarComponentsManager) {
+    uninit(*componentsManager.transforms);
+    uninit(*componentsManager.sprites);
+    uninit(*componentsManager.units);
+    uninit(*componentsManager.animationss);
+    uninit(*componentsManager.roads);
+    uninit(*componentsManager.walls);
+    uninit(*componentsManager.ruins);
+    uninit(*componentsManager.forests);
+    uninit(*componentsManager.projectiles);
+    uninit(*componentsManager.poisonClouds);
+    uninit(*componentsManager.sights);
+    uninit(*componentsManager.stateMachines);
+    uninit(*componentsManager.uis);
+    uninit(*componentsManager.texts);
+    uninit(*componentsManager.rects);
+    uninit(*componentsManager.buttons);
+    uninit(*componentsManager.cursors);
+    uninit(*componentsManager.audios);
+}
+
 getComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) -> *WarComponent {
     assert(ctx != null);
     assert(ctx.scene != null);
@@ -354,8 +394,33 @@ getComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) 
     }
 }
 
-getComponent :: inline ($componentType: Type, ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) -> *componentType {
-    return cast(*componentType) getComponent(ctx, entity, type);
+getComponent :: inline (ctx: *WarContext, entity: *WarEntity, $componentType: Type) -> *componentType {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+    assert(entity != null);
+
+    #if (componentType == WarTransformComponent)         return cast(*componentType) getComponent(ctx, entity, WarComponentType.Transform);
+    else if (componentType ==  WarSpriteComponent)       return cast(*componentType) getComponent(ctx, entity, WarComponentType.Sprite);
+    else if (componentType ==  WarUnitComponent)         return cast(*componentType) getComponent(ctx, entity, WarComponentType.Unit);
+    else if (componentType ==  WarAnimationsComponent)   return cast(*componentType) getComponent(ctx, entity, WarComponentType.Animations);
+    else if (componentType ==  WarRoadComponent)         return cast(*componentType) getComponent(ctx, entity, WarComponentType.Road);
+    else if (componentType ==  WarWallComponent)         return cast(*componentType) getComponent(ctx, entity, WarComponentType.Wall);
+    else if (componentType ==  WarRuinComponent)         return cast(*componentType) getComponent(ctx, entity, WarComponentType.Ruin);
+    else if (componentType ==  WarForestComponent)       return cast(*componentType) getComponent(ctx, entity, WarComponentType.Forest);
+    else if (componentType ==  WarProjectileComponent)   return cast(*componentType) getComponent(ctx, entity, WarComponentType.Projectile);
+    else if (componentType ==  WarPoisonCloudComponent)  return cast(*componentType) getComponent(ctx, entity, WarComponentType.PoisonCloud);
+    else if (componentType ==  WarSightComponent)        return cast(*componentType) getComponent(ctx, entity, WarComponentType.Sight);
+    else if (componentType ==  WarStateMachineComponent) return cast(*componentType) getComponent(ctx, entity, WarComponentType.StateMachine);
+    else if (componentType ==  WarUIComponent)           return cast(*componentType) getComponent(ctx, entity, WarComponentType.UI);
+    else if (componentType ==  WarTextComponent)         return cast(*componentType) getComponent(ctx, entity, WarComponentType.Text);
+    else if (componentType ==  WarRectComponent)         return cast(*componentType) getComponent(ctx, entity, WarComponentType.Rect);
+    else if (componentType ==  WarButtonComponent)       return cast(*componentType) getComponent(ctx, entity, WarComponentType.Button);
+    else if (componentType ==  WarCursorComponent)       return cast(*componentType) getComponent(ctx, entity, WarComponentType.Cursor);
+    else if (componentType ==  WarAudioComponent)        return cast(*componentType) getComponent(ctx, entity, WarComponentType.Audio);
+    else {
+        logError("Unkown component of type: %\n", componentType);
+        return null;
+    }
 }
 
 hasComponent :: inline (ctx: *WarContext, entity: *WarEntity, type: WarComponentType) -> bool {
@@ -370,7 +435,7 @@ createComponent :: (ctx: *WarContext, $type: WarComponentType) -> *WarComponent 
     index: s64 = -1;
     component: *WarComponent = null;
 
-    manager := ctx.scene.componentsManager;
+    manager := *ctx.scene.componentsManager;
     #if (type == WarComponentType.Transform) {
         index, component = addNew(*manager.transforms);
     } else if (type == WarComponentType.Sprite) {

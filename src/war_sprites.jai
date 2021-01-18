@@ -167,13 +167,13 @@ spriteResourceRefFromPlayer :: (player: *WarPlayerInfo, hIdx: s32, oIdx: s32, sp
     return createSpriteResourceRef(resourceIndex, frameIndices);
 }
 
-updateSpriteImage :: (ctx: *WarContext, sprite: WarSprite, imageData: [] u8) {
+updateSpriteImage :: (ctx: *WarContext, sprite: WarSprite, imageData: *u8) {
     if (sprite.image == 0) {
         logWarning("Trying to update a sprite with image: %d\n", sprite.image);
         return;
     }
 
-    nvgUpdateImage(ctx.gfx, sprite.image, imageData.data);
+    nvgUpdateImage(ctx.gfx, sprite.image, imageData);
 }
 
 renderSubSprite :: (ctx: *WarContext, sprite: WarSprite, rs: Rect, rd: Rect, scale: Vec2) {

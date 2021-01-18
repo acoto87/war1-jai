@@ -694,8 +694,6 @@ WarMouseButtons :: enum {
     None;
     Left;
     Right;
-
-    Count;
 }
 
 WarKeys :: enum {
@@ -789,8 +787,6 @@ WarKeys :: enum {
     Shift;
     Ctrl;
     Alt;
-
-    Count;
 }
 
 WarKeyButtonState :: struct {
@@ -806,10 +802,10 @@ WarInput :: struct {
     pos: Vec2;
 
     // state of the mouse buttons
-    buttons: [WarMouseButtons.Count] WarKeyButtonState;
+    buttons: [#run getCount(WarMouseButtons)] WarKeyButtonState;
 
     // state of the keys
-    keys: [WarKeys.Count] WarKeyButtonState;
+    keys: [#run getCount(WarKeys)] WarKeyButtonState;
 
     // drag
     isDragging: bool;
