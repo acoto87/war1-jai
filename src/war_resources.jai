@@ -299,7 +299,7 @@ loadImageResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     height := memoryRead(u16, rawResource.data, 2);
 
     pixels := alloc(u8, cast(s64) width * height * 4);
-    for i : 0..width*height-1 {
+    for i : 0..cast(s32) width * height - 1 {
         colorIndex := cast(u32) memoryRead(u8, rawResource.data, 4 + i);
 
         pixels[i * 4 + 0] = paletteData[colorIndex * 3 + 0];
@@ -338,7 +338,7 @@ loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     frameHeight := memoryRead(u8, rawResource.data, 3);
 
     resource := getOrCreateResource(WarResourceSprite, ctx, entry.index);
-    for i : 0..framesCount-1 {
+    for i : 0..cast(s32) framesCount - 1 {
         frame := *resource.frames[i];
         frame.dx = memoryRead(u8, rawResource.data, 4 + i * 8 + 0);
         frame.dy = memoryRead(u8, rawResource.data, 4 + i * 8 + 1);
@@ -354,7 +354,7 @@ loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
         // }
     }
 
-    for i : 0..framesCount-1 {
+    for i : 0..cast(s32) framesCount - 1 {
         frame := *resource.frames[i];
 
         off := frame.off;
@@ -873,7 +873,7 @@ loadCursor :: (ctx: *WarContext, entry: *DatabaseEntry) {
     height := memoryRead(u16, rawResource.data, 6);
 
     pixels := alloc(u8, width * height * 4);
-    for i : 0..width * height - 1 {
+    for i : 0..cast(s32) width * height - 1 {
         colorIndex := cast(u32) memoryRead(u8, rawResource.data, 8 + i);
 
         pixels[i * 4 + 0] = paletteData[colorIndex * 3 + 0];

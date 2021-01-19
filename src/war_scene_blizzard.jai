@@ -4,9 +4,9 @@ enterSceneBlizzard :: (ctx: *WarContext) {
     assert(ctx.scene.type == WarSceneType.Blizzard);
 
     scene := cast(*WarBlizzardScene) ctx.scene;
-    scene.time = 30.0;
+    scene.time = 3.0;
 
-    createUIImage(ctx, "imgBackground", imageResourceRef(458), VEC2_ZERO);
+    createUIImage(ctx, "imgBackground", imageResourceRef(216), VEC2_ZERO);
     // createAudio(context, WAR_LOGO, true);
 }
 
