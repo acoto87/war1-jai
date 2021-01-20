@@ -155,6 +155,7 @@ renderScene :: (ctx: *WarContext) {
 #scope_file
 
 #load "war_scene_blizzard.jai";
+#load "war_scene_menu.jai";
 
 WarSceneFn :: #type (ctx: *WarContext);
 

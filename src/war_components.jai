@@ -208,7 +208,7 @@ WarButtonComponent :: struct {
     hotKey: WarKeys;
     highlightIndex: s32;
     highlightCount: s32;
-    tooltip: [100] u8;
+    tooltip: string;
     gold: s32;
     wood: s32;
     normalSprite: WarSprite;
@@ -522,18 +522,18 @@ addComponent :: (ctx: *WarContext, entity: *WarEntity, component: *WarComponent)
     entity.components[component.type] = component.index;
 }
 
-removeComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) {
+removeComponent :: (ctx: *WarContext, entity: *WarEntity, type: WarComponentType) {
     assert(ctx != null);
     assert(ctx.scene != null);
     assert(entity != null);
 
-    manager := ctx.scene.componentsManager;
+    manager := *ctx.scene.componentsManager;
     index := entity.components[type];
     if (index < 0) {
         return;
     }
 
-    #if (type == WarComponentType.Transform)        removeAt(*manager.transforms, index);
+    if (type == WarComponentType.Transform)         removeAt(*manager.transforms, index);
     else if (type == WarComponentType.Sprite)       removeAt(*manager.sprites, index);
     else if (type == WarComponentType.Unit)         removeAt(*manager.units, index);
     else if (type == WarComponentType.Animations)   removeAt(*manager.animationss, index);
@@ -553,4 +553,24 @@ removeComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentTyp
     else if (type == WarComponentType.Audio)        removeAt(*manager.audios, index);
 
     entity.components[type] = -1;
+}
+
+setComponentEnabled :: inline (ctx: *WarContext, entity: *WarEntity, $componentType: WarComponentType, value: bool) {
+    assert(ctx != null);
+    assert(entity != null);
+
+    component := getComponent(ctx, entity, componentType);
+    assert(component != null);
+
+    component.enabled = value;
+}
+
+setComponentEnabled :: inline (ctx: *WarContext, entity: *WarEntity, $componentType: Type, value: bool) {
+    assert(ctx != null);
+    assert(entity != null);
+
+    component := getComponent(ctx, entity, componentType);
+    assert(component != null);
+
+    component.enabled = value;
 }

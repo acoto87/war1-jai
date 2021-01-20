@@ -64,7 +64,7 @@ nvgRenderBatchImage :: (gfx: *NVGcontext, batch: *NVGimageBatch, rs: Rect, rd: R
     cxs: [] f32 = array(f32, tx, tx,      tx + tw, tx + tw, tx,      tx + tw);
     cys: [] f32 = array(f32, ty, ty + th, ty,      ty,      ty + th, ty + th);
 
-    for i : 0..6-1 {
+    for i : range(s32, 0, 6) {
         vertex := *batch.vertices[batch.nvertices];
         x, y := nvgTransformPoint(state.xform, pxs[i], pys[i]);
         nvgVset(vertex, x, y, cxs[i], cys[i]);
@@ -171,7 +171,7 @@ nvgStrokePolyline :: (gfx: *NVGcontext, points: [] Vec2, color: NVGcolor, width:
     nvgBeginPath(gfx);
 
     nvgMoveTo(gfx, points[0].x, points[0].y);
-    for i : 1..points.count-1 {
+    for i : range(s32, 1, points.count) {
         nvgLineTo(gfx, points[i].x, points[i].y);
     }
 

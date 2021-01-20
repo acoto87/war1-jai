@@ -69,7 +69,7 @@ createEntity :: (ctx: *WarContext, type: WarEntityType) -> *WarEntity {
     entity.type = type;
     entity.enabled = true;
 
-    for i : 0..getCount(WarComponentType)-1 {
+    for i : range(s32, 0, getCount(WarComponentType)) {
         entity.components[i] = -1;
     }
 
@@ -85,21 +85,6 @@ createEntity :: (ctx: *WarContext, type: WarEntityType) -> *WarEntity {
     }
 
     return entity;
-}
-
-isUIEntity :: (entity: *WarEntity) -> bool {
-    if entity.type == {
-        case WarEntityType.Image; #through;
-        case WarEntityType.Text; #through;
-        case WarEntityType.Rect; #through;
-        case WarEntityType.Button; #through;
-        case WarEntityType.Cursor; #through;
-        case WarEntityType.Minimap;
-            return true;
-
-        case;
-            return false;
-    }
 }
 
 initEntityManager :: (manager: *WarEntityManager) {
@@ -151,6 +136,42 @@ freeEntityManager :: (entityManager: *WarEntityManager) {
     uninit(*entityManager.unitsByType);
     uninit(*entityManager.entitiesById);
     uninit(*entityManager.uiEntities);
+}
+
+removeEntityById :: (ctx: *WarContext, id: WarEntityId) {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+
+    entityManager := *ctx.scene.entityManager;
+
+    logDebug("trying to remove entity with id: %\n", id);
+
+    entity := findEntity(ctx, id);
+    if (entity) {
+        // pthread_mutex_lock(&context.__mutex);
+
+        for entry : iterate(WarComponentType) {
+            removeComponent(ctx, entity, entry.value);
+        }
+
+        if (isUIEntity(entity)) {
+            removeItem(*entityManager.uiEntities, entity);
+        } else if (isUnit(entity)) {
+            unit := getComponent(WarUnitComponent, entity);
+            unitTypeList := getUnitsOfType(ctx, unit.type);
+            removeItem(unitTypeList, entity);
+        }
+
+        entityTypeList := getEntitiesOfType(ctx, entity.type);
+        removeItem(entityTypeList, entity);
+
+        removeKey(*entityManager.entitiesById, entity.id);
+        removeItem(*entityManager.entities, entity);
+
+        // pthread_mutex_unlock(&context.__mutex);
+
+        logDebug("removed entity with id: %\n", id);
+    }
 }
 
 getEntities :: (ctx: *WarContext) -> *List(WarEntity) {
@@ -219,12 +240,240 @@ getUnitsOfTypeOfPlayer :: (ctx: *WarContext, type: WarUnitType, player: u8) -> L
     return unitsOfPlayer;
 }
 
-getUIEntities :: (ctx: *WarContext) -> List(*WarEntity) {
+getUIEntities :: (ctx: *WarContext) -> *List(*WarEntity) {
     assert(ctx != null);
     assert(ctx.scene != null);
 
     entityManager := *ctx.scene.entityManager;
-    return entityManager.uiEntities;
+    return *entityManager.uiEntities;
+}
+
+findEntity :: (ctx: *WarContext, id: WarEntityId) -> *WarEntity {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+
+    entityManager := *ctx.scene.entityManager;
+    found, entity := get(*entityManager.entitiesById, id);
+    return entity;
+}
+
+findEntityAt :: (ctx: *WarContext, targetTile: Vec2) -> WarEntity {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+    assert(ctx.scene.type == WarSceneType.Map);
+
+    scene := cast(*WarMap) ctx.scene;
+
+    entityId := getTileEntityId(map.finder, targetTile.x, targetTile.y);
+    return findEntity(ctx, entityId);
+}
+
+// findClosestUnitOfType :: (ctx: *WarContext, entity: *WarEntity, type: WarUnitType, isAccessible: bool) -> *WarEntity {
+//     WarEntity* result = NULL;
+//     f32 minDst = INT32_MAX;
+
+//     WarEntityList* units = getEntitiesOfType(context, WAR_ENTITY_TYPE_UNIT);
+//     assert(units);
+
+//     for (s32 i = 0; i < units->count; i++)
+//     {
+//         WarEntity* target = units->items[i];
+//         if (isUnitOfType(target, type))
+//         {
+//             if (!isAccessible || isUnitAccessible(context, entity, target))
+//             {
+//                 s32 dst = unitDistanceInTilesToUnit(entity, target);
+//                 if (dst < minDst)
+//                 {
+//                     result = target;
+//                     minDst = dst;
+//                 }
+//             }
+
+//         }
+//     }
+
+//     return result;
+// }
+
+// WarEntity* findClosestForest(ctx: *WarContext, WarEntity* entity)
+// {
+//     WarEntity* result = NULL;
+//     f32 minDst = INT32_MAX;
+
+//     vec2 entityPosition = vec2MapToTileCoordinates(entity->transform.position);
+
+//     WarEntityList* forests = getEntitiesOfType(context, WAR_ENTITY_TYPE_FOREST);
+//     assert(forests);
+
+//     for (s32 i = 0; i < forests->count; i++)
+//     {
+//         WarEntity* forest = forests->items[i];
+//         if (forest)
+//         {
+//             // FACTOR: find the closets tree on the forest to the entity
+//             for (s32 j = 0; j < forest->forest.trees.count; j++)
+//             {
+//                 WarTree* tree = &forest->forest.trees.items[j];
+//                 if (tree)
+//                 {
+//                     vec2 treePosition = vec2i(tree->tilex, tree->tiley);
+//                     s32 dst = vec2DistanceInTiles(entityPosition, treePosition);
+//                     if (dst < minDst)
+//                     {
+//                         result = forest;
+//                         minDst = dst;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     return result;
+// }
+
+findUIEntity :: (ctx: *WarContext, name: string) -> *WarEntity {
+    uiEntities := getUIEntities(ctx);
+    for entity : uiEntities {
+        ui := getComponent(ctx, entity, WarUIComponent);
+        if (ui.name == name) {
+            return entity;
+        }
+    }
+    return null;
+}
+
+// WarEntity* findEntityUnderCursor(ctx: *WarContext, bool includeTrees, bool includeWalls)
+// {
+//     WarInput* input = &context->input;
+//     WarMap* map = context->map;
+
+//     WarPlayerInfo* uiPlayer = getMapUIPlayer(map);
+
+//     vec2 targetPoint = vec2ScreenToMapCoordinates(context, input->pos);
+//     vec2 targetTile = vec2MapToTileCoordinates(targetPoint);
+
+//     WarEntity* entityUnderCursor = NULL;
+
+//     WarEntityList* units = getEntitiesOfType(context, WAR_ENTITY_TYPE_UNIT);
+//     for(s32 i = 0; i < units->count; i++)
+//     {
+//         WarEntity* entity = units->items[i];
+//         if (entity)
+//         {
+//             WarUnitComponent* unit = &entity->unit;
+//             if (unit->enabled)
+//             {
+//                 // don't change the cursor for dead units or corpses
+//                 if (isDeadUnit(entity) || isCorpseUnit(entity))
+//                 {
+//                     continue;
+//                 }
+
+//                 // don't change the cursor for collased buildings
+//                 if (isCollapsedUnit(entity))
+//                 {
+//                     continue;
+//                 }
+
+//                 // don't change the cursor for non-visible units
+//                 if (!isUnitPartiallyVisible(map, uiPlayer, entity))
+//                 {
+//                     continue;
+//                 }
+//             }
+
+//             rect unitRect = getUnitRect(entity);
+//             if (rectContainsf(unitRect, targetPoint.x, targetPoint.y))
+//             {
+//                 entityUnderCursor = entity;
+//                 break;
+//             }
+//         }
+//     }
+
+//     if (includeTrees && !entityUnderCursor)
+//     {
+//         WarEntityList* forests = getEntitiesOfType(context, WAR_ENTITY_TYPE_FOREST);
+//         for (s32 i = 0; i < forests->count; i++)
+//         {
+//             WarEntity* forest = forests->items[i];
+//             if (forest)
+//             {
+//                 WarTreeList* trees = &forest->forest.trees;
+//                 for (s32 k = 0; k < trees->count; k++)
+//                 {
+//                     WarTree tree = trees->items[k];
+//                     if (tree.tilex == (s32)targetTile.x &&
+//                         tree.tiley == (s32)targetTile.y)
+//                     {
+//                         if (tree.type != WAR_TREE_NONE &&
+//                             tree.type != WAR_TREE_CHOPPED)
+//                         {
+//                             entityUnderCursor = forest;
+//                         }
+
+//                         break;
+//                     }
+//                 }
+//             }
+
+//             if (entityUnderCursor)
+//             {
+//                 break;
+//             }
+//         }
+//     }
+
+//     // if there is no unit under the cursor, check the walls
+//     if (includeWalls && !entityUnderCursor)
+//     {
+//         WarEntityList* walls = getEntitiesOfType(context, WAR_ENTITY_TYPE_WALL);
+//         for (s32 i = 0; i < walls->count; i++)
+//         {
+//             WarEntity* wall = walls->items[i];
+//             if (wall)
+//             {
+//                 WarWallPieceList* pieces = &wall->wall.pieces;
+//                 for (s32 k = 0; k < pieces->count; k++)
+//                 {
+//                     WarWallPiece piece = pieces->items[k];
+//                     if (piece.tilex == (s32)targetTile.x &&
+//                         piece.tiley == (s32)targetTile.y)
+//                     {
+//                         if (piece.hp > 0)
+//                         {
+//                             entityUnderCursor = wall;
+//                         }
+
+//                         break;
+//                     }
+//                 }
+//             }
+
+//             if (entityUnderCursor)
+//             {
+//                 break;
+//             }
+//         }
+//     }
+
+//     return entityUnderCursor;
+// }
+
+isUIEntity :: (entity: *WarEntity) -> bool {
+    if entity.type == {
+        case WarEntityType.Image; #through;
+        case WarEntityType.Text; #through;
+        case WarEntityType.Rect; #through;
+        case WarEntityType.Button; #through;
+        case WarEntityType.Cursor; #through;
+        case WarEntityType.Minimap;
+            return true;
+
+        case;
+            return false;
+    }
 }
 
 renderEntity :: (ctx: *WarContext, entity: *WarEntity) {

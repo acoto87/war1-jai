@@ -63,7 +63,7 @@ loadWarFile :: (ctx: *WarContext, filePath: string) -> *WarFile {
 
     fileReadBytes(cast(*u8) warFile.offsets.data, warFile.numberOfEntries * size_of(u32), file);
 
-    for i : 0..warFile.numberOfEntries-1 {
+    for i : range(u32, 0, warFile.numberOfEntries) {
         // placeholders in demo versions
         if (warFile.offsets[i] == 0xFFFFFFFF ||
             warFile.offsets[i] == 0x00000000)

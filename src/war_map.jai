@@ -103,5 +103,5 @@ WarMap :: struct {
     // cheatStatus: WarCheatStatus;
 
     playersCount: s32;
-    // players: [MAX_PLAYERS_COUNT] WarPlayerInfo;
+    players: [MAX_PLAYERS_COUNT] WarPlayerInfo;
 }

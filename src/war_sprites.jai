@@ -58,7 +58,7 @@ createSpriteFromFrames :: (ctx: *WarContext, frameWidth: s32, frameHeight: s32, 
 
     sprite.image = nvgCreateImageRGBA(ctx.gfx, frameWidth, frameHeight, .NVG_IMAGE_NEAREST, null);
 
-    for i : 0..frames.count-1 {
+    for i : range(s32, 0, frames.count) {
         sprite.frames[i].dx = frames[i].dx;
         sprite.frames[i].dy = frames[i].dy;
         sprite.frames[i].w = frames[i].w;
@@ -98,7 +98,7 @@ createSpriteFromResource :: (ctx: *WarContext, resource: *WarResource, frameIndi
                 allFrames := frames;
 
                 frames = allocArray(WarSpriteFrame, frameIndices.count);
-                for i : 0..frameIndices.count-1 {
+                for i : range(s32, 0, frameIndices.count) {
                     frameIndex := frameIndices[i];
                     assert(frameIndex >= 0 && frameIndex < framesCount);
 

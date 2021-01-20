@@ -177,7 +177,7 @@ getPalette :: (ctx: *WarContext, palette1Index: u32, palette2Index: u32, palette
     if (palette2Index) {
         palette2 := getOrCreateResource(WarResourcePalette, ctx, palette2Index);
 
-        for i : 0..128-1 {
+        for i : range(s32, 0, 128) {
             if (paletteData[i * 3 + 0] == 252 &&
                 paletteData[i * 3 + 1] == 0 &&
                 paletteData[i * 3 + 2] == 252)
@@ -188,7 +188,7 @@ getPalette :: (ctx: *WarContext, palette1Index: u32, palette2Index: u32, palette
             }
         }
 
-        for i : 128..256-1 {
+        for i : range(s32, 128, 256) {
             if (!(palette2.colors[i * 3 + 0] == 252 &&
                   palette2.colors[i * 3 + 1] == 0 &&
                   palette2.colors[i * 3 + 2] == 252))
@@ -216,7 +216,7 @@ loadPaletteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     resource := getOrCreateResource(WarResourcePalette, ctx, entry.index);
     resource.type = WarResourceType.Palette;
 
-    for i : 0..PALETTE_LENGTH-1 {
+    for i : range(s32, 0, PALETTE_LENGTH) {
         resource.colors[i] = rawResource.data[i] * 4;
     }
 
@@ -299,7 +299,7 @@ loadImageResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     height := memoryRead(u16, rawResource.data, 2);
 
     pixels := alloc(u8, cast(s64) width * height * 4);
-    for i : 0..cast(s32) width * height - 1 {
+    for i : range(s32, 0, cast(s32) width * height) {
         colorIndex := cast(u32) memoryRead(u8, rawResource.data, 4 + i);
 
         pixels[i * 4 + 0] = paletteData[colorIndex * 3 + 0];
@@ -338,7 +338,7 @@ loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     frameHeight := memoryRead(u8, rawResource.data, 3);
 
     resource := getOrCreateResource(WarResourceSprite, ctx, entry.index);
-    for i : 0..cast(s32) framesCount - 1 {
+    for i : range(s32, 0, cast(s32) framesCount) {
         frame := *resource.frames[i];
         frame.dx = memoryRead(u8, rawResource.data, 4 + i * 8 + 0);
         frame.dy = memoryRead(u8, rawResource.data, 4 + i * 8 + 1);
@@ -354,12 +354,12 @@ loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
         // }
     }
 
-    for i : 0..cast(s32) framesCount - 1 {
+    for i : range(s32, 0, cast(s32) framesCount) {
         frame := *resource.frames[i];
 
         off := frame.off;
-        for y : frame.dy..frame.dy + frame.h - 1 {
-            for x : frame.dx..frame.dx + frame.w - 1 {
+        for y : range(s32, frame.dy, frame.dy + frame.h) {
+            for x : range(s32, frame.dx, frame.dx + frame.w) {
                 pixel := (x + y * frameWidth) * 4;
                 colorIndex := rawResource.data[off];
 
@@ -416,7 +416,7 @@ loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
     resource.customMap = isCustomMap;
 
     arrayClear(resource.allowedFeatures);
-    for f : 0..MAX_FEATURES_COUNT-1 {
+    for f : range(s32, 0, MAX_FEATURES_COUNT) {
         // the feature is allowed if the corresponding bit is set
         if (allowId & (1 << f)) {
             resource.allowedFeatures[f] = 1;
@@ -433,7 +433,7 @@ loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
     // 0x0027 - 0x002B: 5xByte: Spell: far seeing / dark vision.
     // 0x002C - 0x0030: 5xByte: Spell: invisibility / unholy armor.
     // 0x0031 - 0x0035: 5xByte: Upgrade: Shields.
-    for upgrade : 0..MAX_UPGRADES_COUNT-1 {
+    for upgrade : range(s32, 0, MAX_UPGRADES_COUNT) {
         allowedUpgrade := true;
 
         if (upgrade >= 3 && upgrade <= 8) {
@@ -446,7 +446,7 @@ loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
         }
 
         if (allowedUpgrade) {
-            for player : 0..MAX_PLAYERS_COUNT-1 {
+            for player : range(s32, 0, MAX_PLAYERS_COUNT) {
                 value := memoryRead(u8, rawResource.data, 4 + upgrade * 5 + player);
                 resource.allowedUpgrades[upgrade][player] = value;
             }
@@ -454,12 +454,12 @@ loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 
     // 0x005C - 0x0069: 5xDWord: Lumber for each player.
-    for i : 0..MAX_PLAYERS_COUNT-1 {
+    for i : range(s32, 0, MAX_PLAYERS_COUNT) {
         resource.lumber[i] = memoryRead(u32, rawResource.data, 0x5C + i * 4);
     }
 
 	// 0x0070 - 0x0083: 5xDWord: Gold for each player.
-    for i : 0..MAX_PLAYERS_COUNT-1 {
+    for i : range(s32, 0, MAX_PLAYERS_COUNT) {
         resource.gold[i] = memoryRead(u32, rawResource.data, 0x70 + i * 4);
     }
 
@@ -471,7 +471,7 @@ loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
     race := memoryRead(u32, rawResource.data, 0x84);
     resource.races[0] = ifx (race >= (1 << 16)) then WarRace.Humans else WarRace.Orcs;
 
-    for i : 1..MAX_PLAYERS_COUNT-2 {
+    for i : range(s32, 1, MAX_PLAYERS_COUNT - 1) {
         resource.races[i] = ifx (resource.races[0] == WarRace.Humans) then WarRace.Orcs else WarRace.Humans;
     }
 
@@ -609,7 +609,7 @@ loadLevelVisual :: (ctx: *WarContext, entry: *DatabaseEntry) {
 
     resource := getOrCreateResource(WarResourceLevelVisual, ctx, entry.index);
     resource.type = WarResourceType.LevelVisual;
-    for i : 0..MAP_TILES_WIDTH * MAP_TILES_HEIGHT - 1 {
+    for i : range(s32, 0, MAP_TILES_WIDTH * MAP_TILES_HEIGHT) {
         resource.data[i] = memoryRead(u16, rawResource.data, i * 2);
     }
 }
@@ -623,7 +623,7 @@ loadLevelPassable :: (ctx: *WarContext, entry: *DatabaseEntry) {
 
     resource := getOrCreateResource(WarResourceLevelPassable, ctx, entry.index);
     resource.type = WarResourceType.LeveLPassable;
-    for i : 0..MAP_TILES_WIDTH * MAP_TILES_HEIGHT - 1 {
+    for i : range(s32, 0, MAP_TILES_WIDTH * MAP_TILES_HEIGHT) {
         // 128 -> wood, 64 -> water, 16 -> bridge, 0 -> empty
         resource.data[i] = memoryRead(u16, rawResource.data, i * 2);
     }
@@ -640,9 +640,9 @@ loadTileset :: (ctx: *WarContext, entry: *DatabaseEntry) {
 
     data := alloc(u8, TILESET_WIDTH * TILESET_HEIGHT);
     tilesCount := cast(s32) rawResource.length / 8;
-    for i : 0..tilesCount-1 {
-        for my : 0..cast(s32) 1 {
-            for mx : 0..cast(s32) 1 {
+    for i : range(s32, 0, tilesCount) {
+        for my : range(s32, 0, 2) {
+            for mx : range(s32, 0, 2) {
                 offset := memoryRead(u16, rawResource.data, i * 8 + (my * 2 + mx) * 2);
                 flipX := (offset & 0x02) != 0;
                 flipY := (offset & 0x01) != 0;
@@ -653,8 +653,8 @@ loadTileset :: (ctx: *WarContext, entry: *DatabaseEntry) {
                 ix: s32 = mx + (i % TILESET_TILES_PER_ROW) * 2;
                 iy: s32 = my + (i / TILESET_TILES_PER_ROW) * 2;
 
-                for y : 0..cast(s32) 8-1 {
-                    for x : 0..cast(s32) 8-1 {
+                for y : range(s32, 0, 8) {
+                    for x : range(s32, 0, 8) {
                         fy: s32 = ifx flipY then flip[y] else y;
                         fx: s32 = ifx flipX then flip[x] else x;
                         srcValueIndex: s32 = offset + fy * 8 + fx;
@@ -673,7 +673,7 @@ loadTileset :: (ctx: *WarContext, entry: *DatabaseEntry) {
     resource.type = WarResourceType.Tileset;
     resource.tilesCount = rawResource.length / 8;
 
-    for i : 0..TILESET_WIDTH * TILESET_HEIGHT - 1 {
+    for i : range(s32, 0, TILESET_WIDTH * TILESET_HEIGHT) {
         resource.data[i * 4 + 0] = paletteData[data[i] * 3 + 0];
         resource.data[i * 4 + 1] = paletteData[data[i] * 3 + 1];
         resource.data[i * 4 + 2] = paletteData[data[i] * 3 + 2];
@@ -873,7 +873,7 @@ loadCursor :: (ctx: *WarContext, entry: *DatabaseEntry) {
     height := memoryRead(u16, rawResource.data, 6);
 
     pixels := alloc(u8, width * height * 4);
-    for i : 0..cast(s32) width * height - 1 {
+    for i : range(s32, 0, cast(s32) width * height) {
         colorIndex := cast(u32) memoryRead(u8, rawResource.data, 8 + i);
 
         pixels[i * 4 + 0] = paletteData[colorIndex * 3 + 0];

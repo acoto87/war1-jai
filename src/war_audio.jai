@@ -163,7 +163,7 @@ WarAudioId :: enum {
 mbReadUIntVar :: (buffer: *MemoryBuffer, value: *u32) -> bool {
     v: u32 = 0;
     byte: u8;
-    for i : 0..4-1 {
+    for range(0, 4) {
         if (!mbRead(buffer, *byte)) {
             return false;
         }
@@ -190,7 +190,7 @@ mbWriteUIntVar :: (buffer: *MemoryBuffer, value: u32) -> bool {
         value >>= 7;
     }
 
-    for i : 0..byteCount-1 {
+    for range(0, byteCount) {
         byte := cast(u8) (v & 0xFF);
         if (!mbWrite(buffer, byte)) {
             return false;
@@ -438,12 +438,12 @@ changeSampleRate :: (samplesIn: *u8, length: s32, factor: s32) -> *u8 {
     samplesOut[0] = samplesIn[0];
 
     j: s32 = 0;
-    for i : 1..length-1 {
+    for i : range(s32, 1, length) {
         a := samplesIn[i - 1];
         b := samplesIn[i];
 
         dt: f32 = 1.0 / factor;
-        for k : 0..factor-2 {
+        for k : range(s32, 0, factor - 1) {
             // linear interpolation: a + (b - a) * t
             t: f32 = dt * (k + 1);
             samplesOut[j] = cast(u8) (a + (b - a) * t);
