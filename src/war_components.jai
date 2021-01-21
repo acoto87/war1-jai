@@ -574,3 +574,105 @@ setComponentEnabled :: inline (ctx: *WarContext, entity: *WarEntity, $componentT
 
     component.enabled = value;
 }
+
+addTransformComponent :: (ctx: *WarContext, entity: *WarEntity, position: Vec2, scale: Vec2 = VEC2_ONE, rotation: Vec2 = VEC2_ZERO) -> *WarTransformComponent {
+    transform := createComponent(ctx, WarTransformComponent);
+    transform.position = position;
+    transform.rotation = rotation;
+    transform.scale = scale;
+    addComponent(ctx, entity, transform);
+    return transform;
+}
+
+addSpriteComponent :: (ctx: *WarContext, entity: *WarEntity, sprite: WarSprite) -> *WarSpriteComponent {
+    spriteComponent := createComponent(ctx, WarSpriteComponent);
+    spriteComponent.resourceIndex = 0;
+    spriteComponent.frameIndex = 0;
+    spriteComponent.sprite = sprite;
+    addComponent(ctx, entity, spriteComponent);
+    return spriteComponent;
+}
+
+addSpriteComponentFromResource :: (ctx: *WarContext, entity: *WarEntity, spriteResourceRef: WarSpriteResourceRef) -> *WarSpriteComponent {
+    if (spriteResourceRef.resourceIndex < 0) {
+        logWarning("Trying to create a sprite component with invalid resource index: %\n", spriteResourceRef.resourceIndex);
+        return null;
+    }
+
+    sprite := createSpriteFromResourceRef(ctx, spriteResourceRef);
+    spriteComponent = addSpriteComponent(ctx, entity, sprite);
+    spriteComponent.resourceIndex = spriteResourceRef.resourceIndex;
+    return spriteComponent;
+}
+
+addUIComponent :: (ctx: *WarContext, entity: *WarEntity, name: string) -> *WarUIComponent {
+    ui := createComponent(ctx, WarUIComponent);
+    ui.name = name;
+    addComponent(ctx, entity, ui);
+    return ui;
+}
+
+addTextComponent :: (ctx: *WarContext, entity: *WarEntity, fontIndex: s32, fontSize: f32, text: string) -> *WarTextComponent {
+    text := createComponent(ctx, WarTextComponent);
+    text.fontIndex = fontIndex;
+    text.fontSize = fontSize;
+    text.lineHeight = 0;
+    text.fontColor = FONT_NORMAL_COLOR;
+    text.highlightColor = FONT_HIGHLIGHT_COLOR;
+    text.highlightIndex = NO_HIGHLIGHT;
+    text.highlightCount = 0;
+    text.boundings = VEC2_ZERO;
+    text.horizontalAlign = WarTextAlignment.Left;
+    text.verticalAlign = WarTextAlignment.Top;
+    text.lineAlign = WarTextAlignment.Left;
+    text.wrapping = WarTextWrapping.None;
+    text.multiline = false;
+    text.text = text;
+    addComponent(ctx, entity, text);
+    return text;
+}
+
+addRectComponent :: (ctx: *WarContext, entity: *WarEntity, size: Vec2, color: WarColor) -> *WarRectComponent {
+    rect := createComponent(ctx, WarRectComponent);
+    rect.size = size;
+    rect.color = color;
+    addComponent(ctx, entity, rect);
+    return rect;
+}
+
+addCursorComponent :: (ctx: *WarContext, entity: *WarEntity, cursorType: WarCursorType, hot: Vec2) -> *WarCursorComponent {
+    cursor := createComponent(ctx, WarCursorComponent);
+    cursor.cursorType = type;
+    cursor.hot = hot;
+    addComponent(ctx, entity, cursor);
+    return cursor;
+}
+
+addButtonComponent :: (ctx: *WarContext, entity: *WarEntity, normalSprite: WarSprite, pressedSprite: WarSprite) -> *WarButtonComponent {
+    button := createComponent(ctx, WarButtonComponent);
+    button.interactive = true;
+    button.hot = false;
+    button.active = false;
+    button.hotKey = WarKeys.None;
+    button.highlightIndex = NO_HIGHLIGHT;
+    button.normalSprite = normalSprite;
+    button.pressedSprite = pressedSprite;
+    button.clickHandler = null;
+    return button;
+}
+
+addButtonComponentFromResource :: (ctx: *WarContext, entity: *WarEntity, normalRef: WarSpriteResourceRef, pressedRef: WarSpriteResourceRef) -> *WarButtonComponent {
+    if (normalRef.resourceIndex < 0) {
+        logWarning("Trying to create a button component with invalid resource index: %\n", normalRef.resourceIndex);
+        return null;
+    }
+
+    if (pressedRef.resourceIndex < 0) {
+        logWarning("Trying to create a button component with invalid resource index: %\n", pressedRef.resourceIndex);
+        return null;
+    }
+
+    normalSprite := createSpriteFromResourceIndex(ctx, normalRef);
+    pressedSprite := createSpriteFromResourceIndex(ctx, pressedRef);
+    return addButtonComponent(ctx, entity, normalSprite, pressedSprite);
+}

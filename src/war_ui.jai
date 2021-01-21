@@ -16,13 +16,13 @@ setUIText :: (ctx: *WarContext, entity: *WarEntity, text: string) {
     assert(entity != null);
     assert(entity.type == WarEntityType.Text);
 
-    clearUIText(entity);
+    clearUIText(ctx, entity);
 
-    text := getComponent(ctx, entity, WarTextComponent);
-    assert(text != null);
+    textComponent := getComponent(ctx, entity, WarTextComponent);
+    assert(textComponent != null);
 
-    text.text = text;
-    text.enabled = true;
+    textComponent.text = text;
+    textComponent.enabled = true;
 }
 
 setUITextFormat :: (ctx: *WarContext, entity: *WarEntity, format: string, args: ..Any) {
@@ -31,7 +31,7 @@ setUITextFormat :: (ctx: *WarContext, entity: *WarEntity, format: string, args: 
     assert(entity.type == WarEntityType.Text);
 
     text := sprint(format, args);
-    setUIText(entity, text);
+    setUIText(ctx, entity, text);
 }
 
 setUIImage :: (ctx: *WarContext, entity: *WarEntity, frameIndex: s32) {
@@ -54,7 +54,7 @@ setUIRectWidth :: (ctx: *WarContext, entity: *WarEntity, width: s32) {
     rect := getComponent(ctx, entity, WarRectComponent);
     assert(rect != null);
 
-    rect.size.x = width;
+    rect.size.x = cast(f32) width;
     rect.enabled = width > 0;
 }
 
@@ -268,137 +268,113 @@ setUIEntityStatusByName :: (ctx: *WarContext, name: string, enabled: bool) {
     }
 }
 
-WarEntity* createUIText(WarContext* context, char* name, s32 fontIndex, f32 fontSize, const char* text, vec2 position)
-{
-    WarEntity* entity = createEntity(context, WAR_ENTITY_TYPE_TEXT, true);
-    addTransformComponent(context, entity, position);
-    addUIComponent(context, entity, name);
-    addTextComponent(context, entity, fontIndex, fontSize, text);
-
+createUIText :: (ctx: *WarContext, name: string, fontIndex: s32, fontSize: f32, text: string, position: Vec2) -> *WarEntity {
+    entity := createEntity(ctx, WarEntityType.Text);
+    addTransformComponent(ctx, entity, position);
+    addUIComponent(ctx, entity, name);
+    addTextComponent(ctx, entity, fontIndex, fontSize, text);
     return entity;
 }
 
-WarEntity* createUIRect(WarContext* context, char* name, vec2 position, vec2 size, u8Color color)
-{
-    WarEntity* entity = createEntity(context, WAR_ENTITY_TYPE_RECT, true);
-    addTransformComponent(context, entity, position);
-    addUIComponent(context, entity, name);
-    addRectComponent(context, entity, size, color);
-
+createUIRect :: (ctx: *WarContext, name: string, position: Vec2, size: Vec2, color: WarColor) -> *WarEntity {
+    entity := createEntity(ctx, WarEntityType.Rect);
+    addTransformComponent(ctx, entity, position);
+    addUIComponent(ctx, entity, name);
+    addRectComponent(ctx, entity, size, color);
     return entity;
 }
 
 createUIImage :: (ctx: *WarContext, name: string, spriteResourceRef: WarSpriteResourceRef, position: Vec2) -> *WarEntity {
     entity := createEntity(ctx, WarEntityType.Image);
+    addTransformComponent(ctx, entity, position);
+    addUIComponent(ctx, entity, name);
+    addSpriteComponentFromResource(ctx, entity, spriteResourceRef);
+    return entity;
+}
 
-    transform := createComponent(ctx, WarTransformComponent);
-    transform.position = position;
-    addComponent(ctx, entity, transform);
+createUICursor :: (ctx: *WarContext, name: string, type: WarCursorType, position: Vec2) -> *WarEntity {
+    resource := getOrCreateResource(WarCursorResource, ctx, cast(s32) type);
+    assert(resource.type == WAR_RESOURCE_TYPE_CURSOR);
 
-    sprite := createComponent(ctx, WarSpriteComponent);
-    sprite.resourceIndex = spriteResourceRef.resourceIndex;
-    sprite.frameIndex = 0;
-    sprite.sprite = createSpriteFromResourceRef(ctx, spriteResourceRef);
-    addComponent(ctx, entity, sprite);
+    entity := createEntity(ctx, WarEntityType.Cursor);
+    addTransformComponent(ctx, entity, position);
+    addUIComponent(ctx, entity, name);
+    addSpriteComponentFromResource(ctx, entity, imageResourceRef(cast(s32) type));
+    addCursorComponent(ctx, entity, type, vec2(resource.hotx, resource.hoty));
+    return entity;
+}
 
-    ui := createComponent(ctx, WarUIComponent);
-    ui.name = name;
-    addComponent(ctx, entity, ui);
+createUITextButton :: (ctx: *WarContext,
+                       name: string,
+                       fontIndex: s32,
+                       fontSize: f32,
+                       text: string,
+                       backgroundNormalRef: WarSpriteResourceRef,
+                       backgroundPressedRef: WarSpriteResourceRef,
+                       foregroundRef: WarSpriteResourceRef,
+                       position: Vec2) -> *WarEntity
+{
+    entity := createEntity(ctx, WarEntityType.Button);
+    addTransformComponent(ctx, entity, position);
+    addUIComponent(ctx, entity, name);
+    addSpriteComponentFromResource(ctx, entity, foregroundRef);
+    textComponent := addTextComponent(ctx, entity, fontIndex, fontSize, text);
+    buttonComponent := addButtonComponentFromResource(ctx, entity, backgroundNormalRef, backgroundPressedRef);
+
+    textComponent.boundings = vec2(buttonComponent.normalSprite.frameWidth, buttonComponent.normalSprite.frameHeight);
+    textComponent.horizontalAlign = WarTextAlignment.Center;
+    textComponent.verticalAlign = WarTextAlignment.Middle;
 
     return entity;
 }
 
-WarEntity* createUICursor(WarContext* context, char* name, WarCursorType type, vec2 position)
+createUIImageButton :: (ctx: *WarContext,
+                        name: string,
+                        backgroundNormalRef: WarSpriteResourceRef,
+                        backgroundPressedRef: WarSpriteResourceRef,
+                        foregroundRef: WarSpriteResourceRef,
+                        position: Vec2) -> *WarEntity
 {
-    WarResource* resource = getOrCreateResource(context, type);
-    assert(resource->type == WAR_RESOURCE_TYPE_CURSOR);
-
-    WarEntity* entity = createEntity(context, WAR_ENTITY_TYPE_CURSOR, true);
-    addTransformComponent(context, entity, position);
-    addUIComponent(context, entity, name);
-    addSpriteComponentFromResource(context, entity, imageResourceRef(type));
-    addCursorComponent(context, entity, type, vec2i(resource->cursor.hotx, resource->cursor.hoty));
-
+    entity := createEntity(ctx, WarEntityType.Button);
+    addTransformComponent(ctx, entity, position);
+    addUIComponent(ctx, entity, name);
+    addSpriteComponentFromResource(ctx, entity, foregroundRef);
+    addButtonComponentFromResource(ctx, entity, backgroundNormalRef, backgroundPressedRef);
     return entity;
 }
 
-WarEntity* createUITextButton(WarContext* context,
-                              char* name,
-                              s32 fontIndex,
-                              f32 fontSize,
-                              const char* text,
-                              WarSpriteResourceRef backgroundNormalRef,
-                              WarSpriteResourceRef backgroundPressedRef,
-                              WarSpriteResourceRef foregroundRef,
-                              vec2 position)
-{
-    WarEntity* entity = createEntity(context, WAR_ENTITY_TYPE_BUTTON, true);
-    addTransformComponent(context, entity, position);
-    addUIComponent(context, entity, name);
-    addTextComponent(context, entity, fontIndex, fontSize, text);
-    addSpriteComponentFromResource(context, entity, foregroundRef);
-    addButtonComponentFromResource(context, entity, backgroundNormalRef, backgroundPressedRef);
+changeCursorType :: (ctx: *WarContext, entity: *WarEntity, type: WarCursorType) {
+    assert(entity != null);
+    assert(entity.type == WarEntityType.Cursor);
 
-    WarSprite* normalSprite = &entity->button.normalSprite;
-    vec2 backgroundSize = vec2i(normalSprite->frameWidth, normalSprite->frameHeight);
+    cursor := getComponent(ctx, entity, WarCursorComponent);
+    if (cursor.cursorType != type) {
+        resource := getOrCreateResource(WarCursorResource, ctx, cast(s32) type);
+        assert(resource.type == WarResourceType.Cursor);
 
-    setUITextBoundings(entity, backgroundSize);
-    setUITextHorizontalAlign(entity, WAR_TEXT_ALIGN_CENTER);
-    setUITextVerticalAlign(entity, WAR_TEXT_ALIGN_MIDDLE);
+        removeComponent(ctx, entity, WarComponentType.Cursor);
+        addCursorComponent(context, entity, type, vec2(resource.hotx, resource.hoty));
 
-    return entity;
-}
-
-WarEntity* createUIImageButton(WarContext* context,
-                               char* name,
-                               WarSpriteResourceRef backgroundNormalRef,
-                               WarSpriteResourceRef backgroundPressedRef,
-                               WarSpriteResourceRef foregroundRef,
-                               vec2 position)
-{
-    WarEntity* entity = createEntity(context, WAR_ENTITY_TYPE_BUTTON, true);
-    addTransformComponent(context, entity, position);
-    addUIComponent(context, entity, name);
-    addSpriteComponentFromResource(context, entity, foregroundRef);
-    addButtonComponentFromResource(context, entity, backgroundNormalRef, backgroundPressedRef);
-
-    return entity;
-}
-
-void changeCursorType(WarContext* context, WarEntity* entity, WarCursorType type)
-{
-    assert(entity->type == WAR_ENTITY_TYPE_CURSOR);
-
-    if (entity->cursor.type != type)
-    {
-        WarResource* resource = getOrCreateResource(context, type);
-        assert(resource->type == WAR_RESOURCE_TYPE_CURSOR);
-
-        removeCursorComponent(context, entity);
-        addCursorComponent(context, entity, type, vec2i(resource->cursor.hotx, resource->cursor.hoty));
-
-        removeSpriteComponent(context, entity);
-        addSpriteComponentFromResource(context, entity, imageResourceRef(type));
+        removeComponent(ctx, entity, WarComponentType.Sprite);
+        addSpriteComponentFromResource(context, entity, imageResourceRef(cast(s32) type));
     }
 }
 
-void updateUICursor(WarContext* context)
-{
-    WarInput* input = &context->input;
+updateUICursor :: (ctx: *WarContext) {
+    input := *ctx.input;
 
-    WarEntity* entity = findUIEntity(context, "cursor");
-    if (entity)
-    {
-        entity->transform.position = vec2Subv(input->pos, entity->cursor.hot);
-        changeCursorType(context, entity, WAR_CURSOR_ARROW);
+    entity := findUIEntity(ctx, "cursor");
+    if (entity != null) {
+        transform := getComponent(ctx, entity, WarTransformComponent);
+        transform.position = vec2Subv(input.pos, cursor.hot);
+        changeCursorType(ctx, entity, WarCursorType.Arrow);
     }
 }
 
-void updateUIButtons(WarContext* context, bool hotKeysEnabled)
-{
-    WarInput* input = &context->input;
+updateUIButtons :: (ctx: *WarContext, hotKeysEnabled: bool) {
+    input := *ctx.input;
 
-    WarEntityList* buttons = getEntitiesOfType(context, WAR_ENTITY_TYPE_BUTTON);
+    buttons := getEntitiesOfType(ctx, WarEntityType.Button);
 
     // store the buttons to update in this frame first
     // because the action of some buttons is to show other buttons
@@ -406,44 +382,32 @@ void updateUIButtons(WarContext* context, bool hotKeysEnabled)
     // after in the list, then it will update in this same frame
     // which it shouldn't happen
     WarEntityIdSet buttonsToUpdate;
-    WarEntityIdSetInit(&buttonsToUpdate, WarEntityIdSetDefaultOptions);
+    WarEntityIdSetInit(*buttonsToUpdate, WarEntityIdSetDefaultOptions);
+    defer WarEntityIdSetFree(*buttonsToUpdate);
 
-    for(s32 i = 0; i < buttons->count; i++)
-    {
-        WarEntity* entity = buttons->items[i];
-        if (entity)
-        {
-            WarUIComponent* ui = &entity->ui;
-            WarButtonComponent* button = &entity->button;
+    for entity : buttons {
+        ui := getComponent(ctx, entity, WarUIComponent);
+        button := getComponent(ctx, entity, WarButtonComponent);
 
-            if (ui->enabled && button->enabled && button->interactive)
-            {
-                WarEntityIdSetAdd(&buttonsToUpdate, entity->id);
-            }
-            else
-            {
-                button->hot = false;
-                button->active = false;
-            }
+        if (ui.enabled && button.enabled && button.interactive) {
+            WarEntityIdSetAdd(*buttonsToUpdate, entity.id);
+        } else {
+            button.hot = false;
+            button.active = false;
         }
     }
 
-    for(s32 i = 0; i < buttons->count; i++)
-    {
-        WarEntity* entity = buttons->items[i];
-        if (entity && WarEntityIdSetContains(&buttonsToUpdate, entity->id))
-        {
-            WarTransformComponent* transform = &entity->transform;
-            WarButtonComponent* button = &entity->button;
+    for entity : buttons {
+        if (WarEntityIdSetContains(*buttonsToUpdate, entity.id)) {
+            transform := getComponent(ctx, entity, WarTransformComponent);
+            button := getComponent(ctx, entity, WarButtonComponent);
 
-            if (hotKeysEnabled && wasKeyPressed(input, button->hotKey))
-            {
-                if (button->clickHandler)
-                {
-                    button->hot = false;
-                    button->active = false;
+            if (hotKeysEnabled && wasKeyPressed(input, button.hotKey)) {
+                if (button.clickHandler) {
+                    button.hot = false;
+                    button.active = false;
 
-                    button->clickHandler(context, entity);
+                    button.clickHandler(ctx, entity);
 
                     // in this case break to not allow pressing multiple keys
                     // and executing all of the command for those keys
@@ -451,64 +415,42 @@ void updateUIButtons(WarContext* context, bool hotKeysEnabled)
                 }
             }
 
-            vec2 backgroundSize = vec2i(button->normalSprite.frameWidth, button->normalSprite.frameHeight);
-            rect buttonRect = rectv(transform->position, backgroundSize);
-            bool pointerInside = rectContainsf(buttonRect, input->pos.x, input->pos.y);
+            backgroundSize := vec2(button.normalSprite.frameWidth, button.normalSprite.frameHeight);
+            buttonRect := rect(transform.position, backgroundSize);
+            pointerInside := contains(buttonRect, input.pos.x, input.pos.y);
 
-            if (wasButtonPressed(input, WAR_MOUSE_LEFT))
-            {
-                if (button->active)
-                {
-                    if (pointerInside && button->clickHandler)
-                    {
-                        button->clickHandler(context, entity);
-                        createAudio(context, WAR_UI_CLICK, false);
+            if (wasButtonPressed(input, WarMouseButtons.Left)) {
+                if (button.active) {
+                    if (pointerInside && button.clickHandler) {
+                        button.clickHandler(ctx, entity);
+                        // createAudio(ctx, WAR_UI_CLICK, false);
                     }
 
-                    button->active = false;
+                    button.active = false;
+                }
+            } else if (isButtonPressed(input, WarMouseButtons.Left)) {
+                if (button.hot) {
+                    button.active = true;
+                }
+            } else if (pointerInside) {
+                for other : buttons {
+                    otherButton := getComponent(ctx, other, WarButtonComponent);
+                    otherButton.hot = false;
+                    otherButton.active = false;
                 }
 
+                button.hot = true;
+            } else {
+                button.hot = false;
+                button.active = false;
             }
-            else if (isButtonPressed(input, WAR_MOUSE_LEFT))
-            {
-                if (button->hot)
-                    button->active = true;
-            }
-            else if (pointerInside)
-            {
-                for(s32 j = 0; j < buttons->count; j++)
-                {
-                    WarEntity* otherButton = buttons->items[i];
-                    if (otherButton)
-                    {
-                        otherButton->button.hot = false;
-                        otherButton->button.active = false;
-                    }
-                }
-
-                button->hot = true;
-            }
-            else
-            {
-                button->hot = false;
-                button->active = false;
-            }
-        }
-    }
-
-    WarEntityIdSetFree(&buttonsToUpdate);
-}
-
-void renderUIEntities(WarContext* context)
-{
-    WarEntityList* entities = getUIEntities(context);
-    for(s32 i = 0; i < entities->count; i++)
-    {
-        WarEntity *entity = entities->items[i];
-        if (entity)
-        {
-            renderEntity(context, entity);
         }
     }
 }
 
+renderUIEntities :: (ctx: *WarContext) {
+    entities := getUIEntities(ctx);
+    for entity : entities {
+        renderEntity(ctx, entity);
+    }
+}
