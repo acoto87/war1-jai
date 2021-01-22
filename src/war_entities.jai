@@ -36,12 +36,16 @@ WarEntityManager :: struct {
     uiEntities: List(*WarEntity);
 }
 
+operator == :: (e1: WarEntity, e2: WarEntity) -> bool {
+    return e1.id == e2.id;
+}
+
 equalsEntity :: (e1: WarEntity, e2: WarEntity) -> bool {
-    return e1.type == e2.type;
+    return e1.id == e2.id;
 }
 
 equalsEntity :: (e1: *WarEntity, e2: *WarEntity) -> bool {
-    return e1.type == e2.type;
+    return e1.id == e2.id;
 }
 
 hashEntityType :: (type: WarEntityType) -> s64 {
@@ -89,9 +93,7 @@ createEntity :: (ctx: *WarContext, type: WarEntityType) -> *WarEntity {
 
 initEntityManager :: (manager: *WarEntityManager) {
     // initialize entities list
-    init(*manager.entities, ListOptions(WarEntity).{
-        equalsFn = equalsEntity
-    });
+    init(*manager.entities);
 
     // initialize entity by type map
     init(*manager.entitiesByType, HashMapOptions(WarEntityType, List(*WarEntity)).{
@@ -100,9 +102,7 @@ initEntityManager :: (manager: *WarEntityManager) {
 
     for entry : iterate(WarEntityType) {
         list: List(*WarEntity);
-        init(*list, ListOptions(*WarEntity).{
-            equalsFn = equalsEntity
-        });
+        init(*list);
         set(*manager.entitiesByType, entry.value, list);
     }
 
@@ -113,9 +113,8 @@ initEntityManager :: (manager: *WarEntityManager) {
 
     for entry : iterate(WarUnitType) {
         list: List(*WarEntity);
-        init(*list, ListOptions(*WarEntity).{
-            equalsFn = equalsEntity
-        });
+        init(*list);
+
         set(*manager.unitsByType, entry.value, list);
     }
 
@@ -125,9 +124,7 @@ initEntityManager :: (manager: *WarEntityManager) {
     });
 
     // initialize ui entities list
-    init(*manager.uiEntities, ListOptions(*WarEntity).{
-        equalsFn = equalsEntity
-    });
+    init(*manager.uiEntities);
 }
 
 freeEntityManager :: (entityManager: *WarEntityManager) {
@@ -157,8 +154,8 @@ removeEntityById :: (ctx: *WarContext, id: WarEntityId) {
         if (isUIEntity(entity)) {
             removeItem(*entityManager.uiEntities, entity);
         } else if (isUnit(entity)) {
-            unit := getComponent(WarUnitComponent, entity);
-            unitTypeList := getUnitsOfType(ctx, unit.type);
+            unit := getComponent(ctx, entity, WarUnitComponent);
+            unitTypeList := getUnitsOfType(ctx, unit.unitType);
             removeItem(unitTypeList, entity);
         }
 
@@ -166,7 +163,7 @@ removeEntityById :: (ctx: *WarContext, id: WarEntityId) {
         removeItem(entityTypeList, entity);
 
         removeKey(*entityManager.entitiesById, entity.id);
-        removeItem(*entityManager.entities, entity);
+        removeItem(*entityManager.entities, <<entity, equalsEntity);
 
         // pthread_mutex_unlock(&context.__mutex);
 
@@ -205,9 +202,7 @@ getUnitsOfPlayer :: (ctx: *WarContext, player: u8) -> List(*WarEntity) {
     assert(ctx.scene != null);
 
     unitsOfPlayer: List(*WarEntity);
-    init(*unitsOfPlayer, ListOptions(*WarEntity).{
-        equalsFn = equalsEntity
-    });
+    init(*unitsOfPlayer);
 
     entities := getEntitiesOfType(ctx, WarEntityType.Unit);
     for entity : entities {
@@ -225,9 +220,7 @@ getUnitsOfTypeOfPlayer :: (ctx: *WarContext, type: WarUnitType, player: u8) -> L
     assert(ctx.scene != null);
 
     unitsOfPlayer: List(*WarEntity);
-    init(*unitsOfPlayer, ListOptions(*WarEntity).{
-        equalsFn = equalsEntity
-    });
+    init(*unitsOfPlayer);
 
     entities := getUnitsOfType(ctx, type);
     for entity : entities {
@@ -257,14 +250,14 @@ findEntity :: (ctx: *WarContext, id: WarEntityId) -> *WarEntity {
     return entity;
 }
 
-findEntityAt :: (ctx: *WarContext, targetTile: Vec2) -> WarEntity {
+findEntityAt :: (ctx: *WarContext, targetTile: Vec2) -> *WarEntity {
     assert(ctx != null);
     assert(ctx.scene != null);
     assert(ctx.scene.type == WarSceneType.Map);
 
-    scene := cast(*WarMap) ctx.scene;
+    map := cast(*WarMap) ctx.scene;
 
-    entityId := getTileEntityId(map.finder, targetTile.x, targetTile.y);
+    entityId := getTileEntityId(map.finder, cast(s32) targetTile.x, cast(s32) targetTile.y);
     return findEntity(ctx, entityId);
 }
 
@@ -502,32 +495,37 @@ staticEntityId: WarEntityId = 0;
 WarRenderFunc :: #type (ctx: *WarContext, entity: *WarEntity);
 
 renderFns : [] WarRenderFunc = .[
-    null,        // NONE
-    renderImage, // IMAGE
-    null,        // UNIT
-    null,        // ROAD
-    null,        // WALL
-    null,        // RUIN
-    null,        // FOREST
-    null,        // TEXT
-    null,        // RECT
-    null,        // BUTTON
-    renderImage, // CURSOR
-    null,        // AUDIO
-    null,        // PROJECTILE
-    null,        // RAIN_OF_FIRE
-    null,        // POISON_CLOUD
-    null,        // SIGHT
-    null,        // MINIMAP
-    null,        // ANIMATION
+    null,           // NONE
+    renderImage,    // IMAGE
+    null,           // UNIT
+    null,           // ROAD
+    null,           // WALL
+    null,           // RUIN
+    null,           // FOREST
+    renderText,     // TEXT
+    renderRect,     // RECT
+    renderButton,   // BUTTON
+    renderImage,    // CURSOR
+    null,           // AUDIO
+    null,           // PROJECTILE
+    null,           // RAIN_OF_FIRE
+    null,           // POISON_CLOUD
+    null,           // SIGHT
+    null,           // MINIMAP
+    null,           // ANIMATION
 ];
 
 renderImage :: (ctx: *WarContext, entity: *WarEntity) {
     gfx := ctx.gfx;
 
     transform := getComponent(ctx, entity, WarTransformComponent);
+    assert(transform != null);
+
     ui := getComponent(ctx, entity, WarUIComponent);
+    assert(ui != null);
+
     sprite := getComponent(ctx, entity, WarSpriteComponent);
+    assert(sprite != null);
 
     if (ui.enabled && sprite.enabled && sprite.frameIndex >= 0) {
         nvgSave(gfx);
@@ -541,6 +539,156 @@ renderImage :: (ctx: *WarContext, entity: *WarEntity) {
 
         nvgTranslate(gfx, transform.position.x, transform.position.y);
         renderSprite(ctx, sprite.sprite, VEC2_ZERO, VEC2_ONE);
+        nvgRestore(gfx);
+    }
+}
+
+renderText :: (ctx: *WarContext, entity: *WarEntity) {
+    gfx := ctx.gfx;
+
+    transform := getComponent(ctx, entity, WarTransformComponent);
+    assert(transform != null);
+
+    ui := getComponent(ctx, entity, WarUIComponent);
+    assert(ui != null);
+
+    text := getComponent(ctx, entity, WarTextComponent);
+    assert(text != null);
+
+    if (ui.enabled && text.enabled && text.text) {
+        nvgSave(gfx);
+        nvgTranslate(gfx, transform.position.x, transform.position.y);
+        nvgScale(gfx, transform.scale.x, transform.scale.y);
+
+        params: NVGfontParams;
+        params.fontIndex = text.fontIndex;
+        params.fontSize = text.fontSize;
+        params.lineHeight = text.lineHeight;
+        params.fontColor = colorToNVGcolor(text.fontColor);
+        params.highlightColor = colorToNVGcolor(text.highlightColor);
+        params.highlightIndex = text.highlightIndex;
+        params.highlightCount = text.highlightCount;
+        params.boundings = text.boundings;
+        params.horizontalAlign = textAlignToNVGalign(text.horizontalAlign);
+        params.verticalAlign = textAlignToNVGalign(text.verticalAlign);
+        params.lineAlign = textAlignToNVGalign(text.lineAlign);
+        params.wrapping = textWrappingToNVGwrap(text.wrapping);
+        params.trimming = textTrimmingToNVGtrim(text.trimming);
+        params.fontSprite = ctx.fontSprites[text.fontIndex];
+        params.fontData = fontsData[text.fontIndex];
+
+        if (text.multiline) {
+            nvgMultiSpriteText(gfx, toCString(text.text, tempAllocator), 0, 0, params);
+        } else {
+            nvgSingleSpriteText(gfx, toCString(text.text, tempAllocator), 0, 0, params);
+        }
+
+        nvgRestore(gfx);
+    }
+}
+
+renderRect :: (ctx: *WarContext, entity: *WarEntity) {
+    gfx := ctx.gfx;
+
+    transform := getComponent(ctx, entity, WarTransformComponent);
+    assert(transform != null);
+
+    ui := getComponent(ctx, entity, WarUIComponent);
+    assert(ui != null);
+
+    rectComponent := getComponent(ctx, entity, WarRectComponent);
+    assert(rectComponent != null);
+
+    if (ui.enabled && rectComponent.enabled) {
+        nvgSave(gfx);
+        nvgTranslate(gfx, transform.position.x, transform.position.y);
+        nvgScale(gfx, transform.scale.x, transform.scale.y);
+
+        color := nvgRGBA(rectComponent.color.r, rectComponent.color.g, rectComponent.color.b, rectComponent.color.a);
+        nvgFillRect(gfx, rect(0.0, 0.0, rectComponent.size.x, rectComponent.size.y), color);
+
+        nvgRestore(gfx);
+    }
+}
+
+renderButton :: (ctx: *WarContext, entity: *WarEntity) {
+    gfx := ctx.gfx;
+
+    transform := getComponent(ctx, entity, WarTransformComponent);
+    assert(transform != null);
+
+    ui := getComponent(ctx, entity, WarUIComponent);
+    assert(ui != null);
+
+    button := getComponent(ctx, entity, WarButtonComponent);
+    assert(button != null);
+
+    text := getComponent(ctx, entity, WarTextComponent);
+    sprite := getComponent(ctx, entity, WarSpriteComponent);
+
+    if (ui.enabled && button.enabled) {
+        nvgSave(gfx);
+        nvgTranslate(gfx, transform.position.x, transform.position.y);
+        nvgScale(gfx, transform.scale.x, transform.scale.y);
+
+        // render background
+        {
+            backgroundSprite := ifx button.active then button.pressedSprite else button.normalSprite;
+            renderSprite(ctx, backgroundSprite, VEC2_ZERO, VEC2_ONE);
+        }
+
+        // render foreground
+        {
+            if (sprite != null && sprite.enabled) {
+                backgroundSize := vec2(button.normalSprite.frameWidth, button.normalSprite.frameHeight);
+                foregroundSize := vec2(sprite.sprite.frameWidth, sprite.sprite.frameHeight);
+                offset := (backgroundSize - foregroundSize) / 2;
+
+                if (button.active) {
+                    offset = offset + vec2(0, 1);
+                }
+
+                nvgTranslate(gfx, offset.x, offset.y);
+
+                frame := getSpriteFrame(ctx, sprite.sprite, sprite.frameIndex);
+                updateSpriteImage(ctx, sprite.sprite, frame.data);
+                renderSprite(ctx, sprite.sprite, VEC2_ZERO, VEC2_ONE);
+            }
+        }
+
+        // render text
+        {
+            if (text != null && text.enabled) {
+                params: NVGfontParams;
+                params.fontIndex = text.fontIndex;
+                params.fontSize = text.fontSize;
+                params.fontColor = colorToNVGcolor(text.fontColor);
+                params.highlightColor = colorToNVGcolor(text.highlightColor);
+                params.highlightIndex = ifx button.hot then ALL_HIGHLIGHT else text.highlightIndex;
+                params.highlightCount = text.highlightCount;
+                params.boundings = text.boundings;
+                params.horizontalAlign = textAlignToNVGalign(text.horizontalAlign);
+                params.verticalAlign = textAlignToNVGalign(text.verticalAlign);
+                params.lineAlign = textAlignToNVGalign(text.lineAlign);
+                params.wrapping = textWrappingToNVGwrap(text.wrapping);
+                params.fontSprite = ctx.fontSprites[text.fontIndex];
+                params.fontData = fontsData[text.fontIndex];
+
+
+                // THERE IS AN ERROR HERE WHEN i HOVER THE FIRST BUTTON
+                // THE 8TH ELEMENT BUTTON GETS DELETED/OVERWRITTEN OR SOMETHING
+                // THERE IS SOMETHING WRONG IN nvgSingleSpriteText i THINK
+
+                buttons := getEntitiesOfType(ctx, WarEntityType.Button);
+                e8 := buttons.items[8];
+                print("1 % >>>> %\n", entity.id, <<e8);
+
+                nvgSingleSpriteText(gfx, toCString(text.text, tempAllocator), 0, 0, params);
+
+                print("2 % >>>> %\n", entity.id, <<e8);
+            }
+        }
+
         nvgRestore(gfx);
     }
 }

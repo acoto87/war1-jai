@@ -1,7 +1,9 @@
+DEBUG_RENDER_FONT :: false;
+
 WarFontData :: struct {
     spriteWidth: s32;
     spriteHeight: s32;
-    lineHeight: s32;
+    lineHeight: f32;
     advance: s32;
     data: [95] Rect;
 }
@@ -228,14 +230,14 @@ colorToNVGcolor :: (color: WarColor) -> NVGcolor {
 
 textAlignToNVGalign :: (align: WarTextAlignment) -> NVGalign {
     if align == {
-        case WarTextAlignment.Left;   return .NVG_ALIGN_LEFT;
-        case WarTextAlignment.Center; return .NVG_ALIGN_CENTER;
-        case WarTextAlignment.Right;  return .NVG_ALIGN_RIGHT;
-        case WarTextAlignment.Top;    return .NVG_ALIGN_TOP;
-        case WarTextAlignment.Middle; return .NVG_ALIGN_MIDDLE;
-        case WarTextAlignment.Bottom; return .NVG_ALIGN_BOTTOM;
+        case WarTextAlignment.Left;   return NVGalign.NVG_ALIGN_LEFT;
+        case WarTextAlignment.Center; return NVGalign.NVG_ALIGN_CENTER;
+        case WarTextAlignment.Right;  return NVGalign.NVG_ALIGN_RIGHT;
+        case WarTextAlignment.Top;    return NVGalign.NVG_ALIGN_TOP;
+        case WarTextAlignment.Middle; return NVGalign.NVG_ALIGN_MIDDLE;
+        case WarTextAlignment.Bottom; return NVGalign.NVG_ALIGN_BOTTOM;
         case; {
-            logError("Invalid alignment value: %. Defaulting to %\n", align, .NVG_ALIGN_LEFT);
+            logError("Invalid alignment value: %. Defaulting to %\n", align, NVGalign.NVG_ALIGN_LEFT);
             return .NVG_ALIGN_LEFT;
         }
     }
@@ -243,10 +245,10 @@ textAlignToNVGalign :: (align: WarTextAlignment) -> NVGalign {
 
 textWrappingToNVGwrap :: (wrap: WarTextWrapping) -> NVGwrap {
     if wrap == {
-        case WarTextWrapping.None; return .NVG_WRAP_NONE;
-        case WarTextWrapping.Char; return .NVG_WRAP_WORD;
+        case WarTextWrapping.None; return NVGwrap.NVG_WRAP_NONE;
+        case WarTextWrapping.Char; return NVGwrap.NVG_WRAP_WORD;
         case; {
-            logError("Invalid wrapping value: %. Defaulting to %\n", wrap, .NVG_WRAP_NONE);
+            logError("Invalid wrapping value: %. Defaulting to %\n", wrap, NVGwrap.NVG_WRAP_NONE);
             return .NVG_WRAP_NONE;
         }
     }
@@ -254,11 +256,11 @@ textWrappingToNVGwrap :: (wrap: WarTextWrapping) -> NVGwrap {
 
 textTrimmingToNVGtrim :: (trim: WarTextTrimming) -> NVGtrim {
     if trim == {
-        case WarTextTrimming.None; return .NVG_TRIM_NONE;
-        case WarTextTrimming.Spaces; return .NVG_TRIM_SPACES;
-        case WarTextTrimming.All; return .NVG_TRIM_ALL;
+        case WarTextTrimming.None; return NVGtrim.NVG_TRIM_NONE;
+        case WarTextTrimming.Spaces; return NVGtrim.NVG_TRIM_SPACES;
+        case WarTextTrimming.All; return NVGtrim.NVG_TRIM_ALL;
         case; {
-            logError("Invalid trimming value: %. Defaulting to %\n", trim, .NVG_TRIM_NONE);
+            logError("Invalid trimming value: %. Defaulting to %\n", trim, NVGtrim.NVG_TRIM_NONE);
             return .NVG_TRIM_NONE;
         }
     }
@@ -268,13 +270,13 @@ getCharIndex :: (c: u8) -> s32 {
     return cast(s32) (ifx c > 0 then c - 32 else 0);
 }
 
-loadFontSprite :: (context: *WarContext, fontPath: string) -> WarSprite {
+loadFontSprite :: (ctx: *WarContext, fontPath: string) -> WarSprite {
     sprite: WarSprite;
 
     width, height, bitsPerPixel: s32;
-    data := stbi_load(fontPath, *width, *height, *bitsPerPixel, 0);
+    data := stbi_load(toCString(fontPath, tempAllocator), *width, *height, *bitsPerPixel, 0);
     if (data) {
-        sprite = createSprite(context, width, height, data);
+        sprite = createSprite(ctx, width, height, data);
         stbi_image_free(data);
     }
 
@@ -285,13 +287,13 @@ getAlignmentOffset :: (horizontalAlign: NVGalign, verticalAlign: NVGalign, bound
     offset := VEC2_ZERO;
 
     if horizontalAlign == {
-        case .NVG_ALIGN_LEFT; {
+        case NVGalign.NVG_ALIGN_LEFT; {
             // nothing here
         }
-        case .NVG_ALIGN_CENTER; {
-            offset.x = ceilf(halff(boundings.x - textSize.x));
+        case NVGalign.NVG_ALIGN_CENTER; {
+            offset.x = ceilf((boundings.x - textSize.x)/2);
         }
-        case .NVG_ALIGN_RIGHT; {
+        case NVGalign.NVG_ALIGN_RIGHT; {
             offset.x = ceilf(boundings.x - textSize.x);
         }
         case; {
@@ -300,13 +302,13 @@ getAlignmentOffset :: (horizontalAlign: NVGalign, verticalAlign: NVGalign, bound
     }
 
     if verticalAlign == {
-        case NVG_ALIGN_TOP; {
+        case NVGalign.NVG_ALIGN_TOP; {
             // nothing here
         }
-        case NVG_ALIGN_MIDDLE; {
-            offset.y = ceilf(halff(boundings.y) - halff(textSize.y));
+        case NVGalign.NVG_ALIGN_MIDDLE; {
+            offset.y = ceilf((boundings.y/2) - (textSize.y/2));
         }
-        case NVG_ALIGN_BOTTOM; {
+        case NVGalign.NVG_ALIGN_BOTTOM; {
             offset.y = ceilf(boundings.y - textSize.y);
         }
         case; {
@@ -325,7 +327,7 @@ getLineAlignmentOffset :: (lineAlign: NVGalign, width: f32, lineWidth: f32) -> f
             // nothing here
         }
         case .NVG_ALIGN_CENTER; {
-            offset = ceilf(halff(width - lineWidth));
+            offset = ceilf((width - lineWidth)/2);
         }
         case .NVG_ALIGN_RIGHT; {
             offset = ceilf(width - lineWidth);
@@ -344,7 +346,7 @@ NVGTextSpan :: struct {
     width: f32;
 }
 
-nvgSplitTextIntoLines :: (text: *u8, maxLines: s32, lines: [] NVGTextSpan, width: f32, params: NVGfontParams) {
+nvgSplitTextIntoLines :: (text: *u8, maxLines: s32, lines: [] NVGTextSpan, width: f32, params: NVGfontParams) -> s32 {
     scale := params.fontSize / params.fontData.lineHeight;
     wrap := params.wrapping == .NVG_WRAP_WORD;
     x: f32 = 0;
@@ -367,7 +369,7 @@ nvgSplitTextIntoLines :: (text: *u8, maxLines: s32, lines: [] NVGTextSpan, width
             x = 0;
         } else if (c == #char "\t") {
             rs := params.fontData.data[getCharIndex(#char " ")];
-            dx := (TAB_WIDTH * rs.width + params.fontData.advance) * scale;
+            dx := (TAB_WIDTH * rs.w + params.fontData.advance) * scale;
 
             // if the current character doesn't fit in the line generate a new line
             if (x + dx > width && wrap) {
@@ -383,7 +385,7 @@ nvgSplitTextIntoLines :: (text: *u8, maxLines: s32, lines: [] NVGTextSpan, width
             x += dx;
         } else {
             rs := params.fontData.data[getCharIndex(c)];
-            dx := (rs.width + params.fontData.advance) * scale;
+            dx := (rs.w + params.fontData.advance) * scale;
 
             // if the current character doesn't fit in the line generate a new line
             if (x + dx > width && wrap) {
@@ -411,8 +413,8 @@ nvgSplitTextIntoLines :: (text: *u8, maxLines: s32, lines: [] NVGTextSpan, width
 
     // trim start and end spaces on lines
     if (params.trimming != .NVG_TRIM_NONE) {
-        whiteSpaceData := params.fontData.data[getCharIndex(#cha " ")];
-        whiteSpaceWidth := (whiteSpaceData.width + params.fontData.advance) * scale;
+        whiteSpaceData := params.fontData.data[getCharIndex(#char " ")];
+        whiteSpaceWidth := (whiteSpaceData.w + params.fontData.advance) * scale;
 
         for i : range(s32, 0, k) {
             while (true) {
@@ -457,12 +459,12 @@ nvgMeasureSingleSpriteText :: (text: *u8, length: s32, params: NVGfontParams) ->
         } else if (c == #char "\n") {
             size.x += params.fontData.advance * scale;
         } else if (c == #char "\t") {
-            rect rs = params.fontData.data[getCharIndex(#char " ")];
-            size.x += (TAB_WIDTH * rs.width + params.fontData.advance) * scale;
+            rs := params.fontData.data[getCharIndex(#char " ")];
+            size.x += (TAB_WIDTH * rs.w + params.fontData.advance) * scale;
         } else {
-            rect rs = params.fontData.data[getCharIndex(c)];
-            size.x += (rs.width + params.fontData.advance) * scale;
-            size.y = max(size.y, rs.height * scale);
+            rs := params.fontData.data[getCharIndex(c)];
+            size.x += (rs.w + params.fontData.advance) * scale;
+            size.y = max(size.y, rs.h * scale);
         }
 
         length -= 1;
@@ -496,7 +498,7 @@ nvgSingleSpriteTextSpan :: (gfx: *NVGcontext,
                             fontColor: NVGcolor,
                             fontSprite: WarSprite,
                             fontData: WarFontData,
-                            boundings: vec2,
+                            boundings: Vec2,
                             scale: f32) -> f32
 {
     if (count > 0) {
@@ -516,14 +518,14 @@ nvgSingleSpriteTextSpan :: (gfx: *NVGcontext,
                 // when we are rendering a single text span, all newline characters
                 // are rendered as ' ' since a single text span is considered
                 // a one line of text, it won't go to the next line
-                rect rs = fontData.data[getCharIndex(#char " ")];
-                x += rs.width + fontData.advance;
+                rs := fontData.data[getCharIndex(#char " ")];
+                x += rs.w + fontData.advance;
             } else if (c == #char "\t") {
-                rect rs = fontData.data[getCharIndex(#char " ")];
-                x += TAB_WIDTH * rs.width + fontData.advance;
+                rs := fontData.data[getCharIndex(#char " ")];
+                x += TAB_WIDTH * rs.w + fontData.advance;
             } else {
-                rect rs = fontData.data[getCharIndex(c)];
-                rect rd = rectf(x, y, rs.width, rs.height);
+                rs := fontData.data[getCharIndex(c)];
+                rd := rect(x, y, rs.w, rs.h);
 
                 #if DEBUG_RENDER_FONT {
                     nvgFillRect(gfx, rd, NVG_GREEN_SELECTION);
@@ -533,11 +535,11 @@ nvgSingleSpriteTextSpan :: (gfx: *NVGcontext,
                     nvgRenderBatchImage(gfx, *batch, rs, rd, VEC2_ONE);
                 }
 
-                x += rs.width + fontData.advance;
+                x += rs.w + fontData.advance;
             }
         }
 
-        nvgEndImageBatch(gfx, batch);
+        nvgEndImageBatch(gfx, *batch);
         nvgRestore(gfx);
     }
 
@@ -547,7 +549,7 @@ nvgSingleSpriteTextSpan :: (gfx: *NVGcontext,
 nvgSingleSpriteText :: (gfx: *NVGcontext, text: *u8, x: f32, y: f32, params: NVGfontParams) {
     scale := params.fontSize / params.fontData.lineHeight;
     textSize := nvgMeasureSingleSpriteText(text, -1, params);
-    length := strlen(text);
+    length := cast(s32) strlen(text);
 
     nvgSave(gfx);
     nvgTranslate(gfx, x, y);
@@ -560,7 +562,7 @@ nvgSingleSpriteText :: (gfx: *NVGcontext, text: *u8, x: f32, y: f32, params: NVG
     nvgScale(gfx, scale, scale);
 
     #if DEBUG_RENDER_FONT {
-        rect outline = rectf(0, 0, textSize.x / scale, 1.5f);
+        outline := rect(0, 0, textSize.x / scale, 1.5);
         nvgStrokeRect(gfx, outline, NVG_GREEN_SELECTION, 3);
     }
 
@@ -627,7 +629,7 @@ nvgMultiSpriteText :: (gfx: *NVGcontext, text: *u8, x: f32, y: f32, params: NVGf
     nvgTranslate(gfx, textOffset.x, textOffset.y);
 
     #if DEBUG_RENDER_FONT {
-        rect outline = rectf(0, 0, textSize.x, textSize.y);
+        outline := rect(0, 0, textSize.x, textSize.y);
         nvgStrokeRect(gfx, outline, NVG_RED_SELECTION, 1);
     }
 
@@ -648,7 +650,7 @@ nvgMultiSpriteText :: (gfx: *NVGcontext, text: *u8, x: f32, y: f32, params: NVGf
         nvgTranslate(gfx, 0, lineOffset.y);
 
         #if DEBUG_RENDER_FONT {
-            rect outline = rectf(0, 0, line.width / scale, lineHeight);
+            outline := rect(0, 0, line.width / scale, lineHeight);
             nvgStrokeRect(gfx, outline, NVG_GREEN_SELECTION, 1);
         }
 

@@ -97,7 +97,7 @@ WarMap :: struct {
     hurryUp: bool;
     fowEnabled: bool;
 
-    // finder: WarPathFinder;
+    finder: WarPathFinder;
     // uiCommand: WarUICommand;
     // flashStatus: WarFlashStatus;
     // cheatStatus: WarCheatStatus;

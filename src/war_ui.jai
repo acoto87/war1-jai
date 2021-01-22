@@ -1,7 +1,10 @@
+setUIEntityStatus :: inline (ctx: *WarContext, entity: *WarEntity, enabled: bool) {
+    setComponentStatus(ctx, entity, WarComponentType.UI, enabled);
+}
+
 clearUIText :: (ctx: *WarContext, entity: *WarEntity) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -14,12 +17,11 @@ clearUIText :: (ctx: *WarContext, entity: *WarEntity) {
 setUIText :: (ctx: *WarContext, entity: *WarEntity, text: string) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
-
-    clearUIText(ctx, entity);
 
     textComponent := getComponent(ctx, entity, WarTextComponent);
     assert(textComponent != null);
+
+    free(textComponent.text);
 
     textComponent.text = text;
     textComponent.enabled = true;
@@ -28,7 +30,6 @@ setUIText :: (ctx: *WarContext, entity: *WarEntity, text: string) {
 setUITextFormat :: (ctx: *WarContext, entity: *WarEntity, format: string, args: ..Any) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := sprint(format, args);
     setUIText(ctx, entity, text);
@@ -37,7 +38,6 @@ setUITextFormat :: (ctx: *WarContext, entity: *WarEntity, format: string, args: 
 setUIImage :: (ctx: *WarContext, entity: *WarEntity, frameIndex: s32) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Image);
 
     sprite := getComponent(ctx, entity, WarSpriteComponent);
     assert(sprite != null);
@@ -49,7 +49,6 @@ setUIImage :: (ctx: *WarContext, entity: *WarEntity, frameIndex: s32) {
 setUIRectWidth :: (ctx: *WarContext, entity: *WarEntity, width: s32) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Rect);
 
     rect := getComponent(ctx, entity, WarRectComponent);
     assert(rect != null);
@@ -61,7 +60,6 @@ setUIRectWidth :: (ctx: *WarContext, entity: *WarEntity, width: s32) {
 clearUITooltip :: (ctx: *WarContext, entity: *WarEntity) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Button);
 
     button := getComponent(ctx, entity, WarButtonComponent);
     assert(button != null);
@@ -73,12 +71,11 @@ clearUITooltip :: (ctx: *WarContext, entity: *WarEntity) {
 setUITooltip :: (ctx: *WarContext, entity: *WarEntity, highlightIndex: s32, highlightCount: s32, text: string) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Button);
-
-    clearUITooltip(uiButton);
 
     button := getComponent(ctx, entity, WarButtonComponent);
     assert(button != null);
+
+    free(button.tooltip);
 
     button.highlightIndex = highlightIndex;
     button.highlightCount = highlightCount;
@@ -88,7 +85,6 @@ setUITooltip :: (ctx: *WarContext, entity: *WarEntity, highlightIndex: s32, high
 setUITextBoundings :: inline (ctx: *WarContext, entity: *WarEntity, value: Vec2) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -99,7 +95,6 @@ setUITextBoundings :: inline (ctx: *WarContext, entity: *WarEntity, value: Vec2)
 setUITextHorizontalAlign :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTextAlignment) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -110,7 +105,6 @@ setUITextHorizontalAlign :: inline (ctx: *WarContext, entity: *WarEntity, value:
 setUITextVerticalAlign :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTextAlignment) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -121,7 +115,6 @@ setUITextVerticalAlign :: inline (ctx: *WarContext, entity: *WarEntity, value: W
 setUITextLineAlign :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTextAlignment) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -132,7 +125,6 @@ setUITextLineAlign :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTe
 setUITextWrapping :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTextWrapping) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -143,7 +135,6 @@ setUITextWrapping :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTex
 setUITextColor :: inline (ctx: *WarContext, entity: *WarEntity, value: WarColor) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -154,7 +145,6 @@ setUITextColor :: inline (ctx: *WarContext, entity: *WarEntity, value: WarColor)
 setUITextHighlight :: inline (ctx: *WarContext, entity: *WarEntity, index: s32, count: s32) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -166,7 +156,6 @@ setUITextHighlight :: inline (ctx: *WarContext, entity: *WarEntity, index: s32, 
 setUITextHighlightColor :: inline (ctx: *WarContext, entity: *WarEntity, color: WarColor) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -177,7 +166,6 @@ setUITextHighlightColor :: inline (ctx: *WarContext, entity: *WarEntity, color: 
 setUITextMultiline :: inline (ctx: *WarContext, entity: *WarEntity, value: bool) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -188,7 +176,6 @@ setUITextMultiline :: inline (ctx: *WarContext, entity: *WarEntity, value: bool)
 setUITextLineHeight :: inline (ctx: *WarContext, entity: *WarEntity, value: f32) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -199,7 +186,6 @@ setUITextLineHeight :: inline (ctx: *WarContext, entity: *WarEntity, value: f32)
 setUITextTrimming :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTextTrimming) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Text);
 
     text := getComponent(ctx, entity, WarTextComponent);
     assert(text != null);
@@ -210,7 +196,6 @@ setUITextTrimming :: inline (ctx: *WarContext, entity: *WarEntity, value: WarTex
 setUIButtonInteractive :: inline (ctx: *WarContext, entity: *WarEntity, value: bool) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Button);
 
     button := getComponent(ctx, entity, WarButtonComponent);
     assert(button != null);
@@ -221,7 +206,6 @@ setUIButtonInteractive :: inline (ctx: *WarContext, entity: *WarEntity, value: b
 setUIButtonHotKey :: inline (ctx: *WarContext, entity: *WarEntity, key: WarKeys) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Button);
 
     button := getComponent(ctx, entity, WarButtonComponent);
     assert(button != null);
@@ -232,12 +216,15 @@ setUIButtonHotKey :: inline (ctx: *WarContext, entity: *WarEntity, key: WarKeys)
 setUIButtonClickHandler :: inline (ctx: *WarContext, entity: *WarEntity, handler: WarClickHandler) {
     assert(ctx != null);
     assert(entity != null);
-    assert(entity.type == WarEntityType.Button);
 
     button := getComponent(ctx, entity, WarButtonComponent);
     assert(button != null);
 
     button.clickHandler = handler;
+}
+
+setUIButtonStatus :: inline (ctx: *WarContext, entity: *WarEntity, enabled: bool) {
+    setComponentStatus(ctx, entity, WarComponentType.Button, enabled);
 }
 
 setUIButtonStatusByName :: (ctx: *WarContext, name: string, enabled: bool) {
@@ -264,7 +251,7 @@ setUIButtonHotKeyByName :: (ctx: *WarContext, name: string, key: WarKeys) {
 setUIEntityStatusByName :: (ctx: *WarContext, name: string, enabled: bool) {
     entity := findUIEntity(ctx, name);
     if (entity) {
-        setUIEntityStatus(ctx, enabled);
+        setUIEntityStatus(ctx, entity, enabled);
     }
 }
 
@@ -293,8 +280,8 @@ createUIImage :: (ctx: *WarContext, name: string, spriteResourceRef: WarSpriteRe
 }
 
 createUICursor :: (ctx: *WarContext, name: string, type: WarCursorType, position: Vec2) -> *WarEntity {
-    resource := getOrCreateResource(WarCursorResource, ctx, cast(s32) type);
-    assert(resource.type == WAR_RESOURCE_TYPE_CURSOR);
+    resource := getOrCreateResource(WarResourceCursor, ctx, cast(u32) type);
+    assert(resource.type == WarResourceType.Cursor);
 
     entity := createEntity(ctx, WarEntityType.Cursor);
     addTransformComponent(ctx, entity, position);
@@ -345,18 +332,19 @@ createUIImageButton :: (ctx: *WarContext,
 
 changeCursorType :: (ctx: *WarContext, entity: *WarEntity, type: WarCursorType) {
     assert(entity != null);
-    assert(entity.type == WarEntityType.Cursor);
 
     cursor := getComponent(ctx, entity, WarCursorComponent);
+    assert(cursor != null);
+
     if (cursor.cursorType != type) {
-        resource := getOrCreateResource(WarCursorResource, ctx, cast(s32) type);
+        resource := getOrCreateResource(WarResourceCursor, ctx, cast(u32) type);
         assert(resource.type == WarResourceType.Cursor);
 
         removeComponent(ctx, entity, WarComponentType.Cursor);
-        addCursorComponent(context, entity, type, vec2(resource.hotx, resource.hoty));
+        addCursorComponent(ctx, entity, type, vec2(resource.hotx, resource.hoty));
 
         removeComponent(ctx, entity, WarComponentType.Sprite);
-        addSpriteComponentFromResource(context, entity, imageResourceRef(cast(s32) type));
+        addSpriteComponentFromResource(ctx, entity, imageResourceRef(cast(s32) type));
     }
 }
 
@@ -365,8 +353,9 @@ updateUICursor :: (ctx: *WarContext) {
 
     entity := findUIEntity(ctx, "cursor");
     if (entity != null) {
+        cursor := getComponent(ctx, entity, WarCursorComponent);
         transform := getComponent(ctx, entity, WarTransformComponent);
-        transform.position = vec2Subv(input.pos, cursor.hot);
+        transform.position = input.pos - cursor.hot;
         changeCursorType(ctx, entity, WarCursorType.Arrow);
     }
 }
@@ -381,16 +370,18 @@ updateUIButtons :: (ctx: *WarContext, hotKeysEnabled: bool) {
     // in their same location, and if the newly shown button is
     // after in the list, then it will update in this same frame
     // which it shouldn't happen
-    WarEntityIdSet buttonsToUpdate;
-    WarEntityIdSetInit(*buttonsToUpdate, WarEntityIdSetDefaultOptions);
-    defer WarEntityIdSetFree(*buttonsToUpdate);
+    buttonsToUpdate: HashSet(WarEntityId);
+    init(*buttonsToUpdate, HashSetOptions(WarEntityId).{
+        hashFn = hashEntityId
+    });
+    defer uninit(*buttonsToUpdate);
 
     for entity : buttons {
         ui := getComponent(ctx, entity, WarUIComponent);
         button := getComponent(ctx, entity, WarButtonComponent);
 
         if (ui.enabled && button.enabled && button.interactive) {
-            WarEntityIdSetAdd(*buttonsToUpdate, entity.id);
+            add(*buttonsToUpdate, entity.id);
         } else {
             button.hot = false;
             button.active = false;
@@ -398,7 +389,7 @@ updateUIButtons :: (ctx: *WarContext, hotKeysEnabled: bool) {
     }
 
     for entity : buttons {
-        if (WarEntityIdSetContains(*buttonsToUpdate, entity.id)) {
+        if (contains(*buttonsToUpdate, entity.id)) {
             transform := getComponent(ctx, entity, WarTransformComponent);
             button := getComponent(ctx, entity, WarButtonComponent);
 
@@ -433,7 +424,8 @@ updateUIButtons :: (ctx: *WarContext, hotKeysEnabled: bool) {
                     button.active = true;
                 }
             } else if (pointerInside) {
-                for other : buttons {
+                for j : 0..buttons.count-1 {
+                    other := buttons.items[j];
                     otherButton := getComponent(ctx, other, WarButtonComponent);
                     otherButton.hot = false;
                     otherButton.active = false;

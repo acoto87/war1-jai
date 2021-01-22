@@ -115,10 +115,10 @@ updateScene :: (ctx: *WarContext) {
     if (updateSceneFn != null) {
         updateSceneFn(ctx);
     } else {
-        // updateCheatsPanel(context);
-        // updateUIButtons(context, !cheatsEnabledAndVisible(scene));
-        // updateUICursor(context);
-        // updateAnimations(context);
+        // updateCheatsPanel(ctx);
+        updateUIButtons(ctx, true); // !cheatsEnabledAndVisible(scene));
+        updateUICursor(ctx);
+        // updateAnimations(ctx);
     }
 }
 
@@ -170,7 +170,7 @@ WarSceneDescriptor :: struct {
 sceneDescriptors : [] WarSceneDescriptor = .[
     .{ WarSceneType.Download, null,               null, null,                null },
     .{ WarSceneType.Blizzard, enterSceneBlizzard, null, updateSceneBlizzard, null },
-    .{ WarSceneType.MainMenu, null,               null, null,                null },
+    .{ WarSceneType.MainMenu, enterSceneMainMenu, null, null,                null },
     .{ WarSceneType.Briefing, null,               null, null,                null },
     .{ WarSceneType.Map,      null,               null, null,                null }
 ];

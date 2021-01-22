@@ -370,6 +370,10 @@ getComponent :: (ctx: *WarContext, entity: *WarEntity, $type: WarComponentType) 
 
     manager := ctx.scene.componentsManager;
     index := entity.components[type];
+    if (index < 0) {
+        return null;
+    }
+
     #if (type == WarComponentType.Transform)         return ref(*manager.transforms, index);
     else if (type ==  WarComponentType.Sprite)       return ref(*manager.sprites, index);
     else if (type ==  WarComponentType.Unit)         return ref(*manager.units, index);
@@ -555,42 +559,42 @@ removeComponent :: (ctx: *WarContext, entity: *WarEntity, type: WarComponentType
     entity.components[type] = -1;
 }
 
-setComponentEnabled :: inline (ctx: *WarContext, entity: *WarEntity, $componentType: WarComponentType, value: bool) {
+setComponentStatus :: inline (ctx: *WarContext, entity: *WarEntity, $componentType: WarComponentType, enabled: bool) {
     assert(ctx != null);
     assert(entity != null);
 
     component := getComponent(ctx, entity, componentType);
     assert(component != null);
 
-    component.enabled = value;
+    component.enabled = enabled;
 }
 
-setComponentEnabled :: inline (ctx: *WarContext, entity: *WarEntity, $componentType: Type, value: bool) {
+setComponentStatus :: inline (ctx: *WarContext, entity: *WarEntity, $componentType: Type, enabled: bool) {
     assert(ctx != null);
     assert(entity != null);
 
     component := getComponent(ctx, entity, componentType);
     assert(component != null);
 
-    component.enabled = value;
+    component.enabled = enabled;
 }
 
 addTransformComponent :: (ctx: *WarContext, entity: *WarEntity, position: Vec2, scale: Vec2 = VEC2_ONE, rotation: Vec2 = VEC2_ZERO) -> *WarTransformComponent {
-    transform := createComponent(ctx, WarTransformComponent);
-    transform.position = position;
-    transform.rotation = rotation;
-    transform.scale = scale;
-    addComponent(ctx, entity, transform);
-    return transform;
+    component := createComponent(ctx, WarTransformComponent);
+    component.position = position;
+    component.rotation = rotation;
+    component.scale = scale;
+    addComponent(ctx, entity, component);
+    return component;
 }
 
 addSpriteComponent :: (ctx: *WarContext, entity: *WarEntity, sprite: WarSprite) -> *WarSpriteComponent {
-    spriteComponent := createComponent(ctx, WarSpriteComponent);
-    spriteComponent.resourceIndex = 0;
-    spriteComponent.frameIndex = 0;
-    spriteComponent.sprite = sprite;
-    addComponent(ctx, entity, spriteComponent);
-    return spriteComponent;
+    component := createComponent(ctx, WarSpriteComponent);
+    component.resourceIndex = 0;
+    component.frameIndex = 0;
+    component.sprite = sprite;
+    addComponent(ctx, entity, component);
+    return component;
 }
 
 addSpriteComponentFromResource :: (ctx: *WarContext, entity: *WarEntity, spriteResourceRef: WarSpriteResourceRef) -> *WarSpriteComponent {
@@ -600,65 +604,66 @@ addSpriteComponentFromResource :: (ctx: *WarContext, entity: *WarEntity, spriteR
     }
 
     sprite := createSpriteFromResourceRef(ctx, spriteResourceRef);
-    spriteComponent = addSpriteComponent(ctx, entity, sprite);
-    spriteComponent.resourceIndex = spriteResourceRef.resourceIndex;
-    return spriteComponent;
+    component := addSpriteComponent(ctx, entity, sprite);
+    component.resourceIndex = spriteResourceRef.resourceIndex;
+    return component;
 }
 
 addUIComponent :: (ctx: *WarContext, entity: *WarEntity, name: string) -> *WarUIComponent {
-    ui := createComponent(ctx, WarUIComponent);
-    ui.name = name;
-    addComponent(ctx, entity, ui);
-    return ui;
+    component := createComponent(ctx, WarUIComponent);
+    component.name = name;
+    addComponent(ctx, entity, component);
+    return component;
 }
 
 addTextComponent :: (ctx: *WarContext, entity: *WarEntity, fontIndex: s32, fontSize: f32, text: string) -> *WarTextComponent {
-    text := createComponent(ctx, WarTextComponent);
-    text.fontIndex = fontIndex;
-    text.fontSize = fontSize;
-    text.lineHeight = 0;
-    text.fontColor = FONT_NORMAL_COLOR;
-    text.highlightColor = FONT_HIGHLIGHT_COLOR;
-    text.highlightIndex = NO_HIGHLIGHT;
-    text.highlightCount = 0;
-    text.boundings = VEC2_ZERO;
-    text.horizontalAlign = WarTextAlignment.Left;
-    text.verticalAlign = WarTextAlignment.Top;
-    text.lineAlign = WarTextAlignment.Left;
-    text.wrapping = WarTextWrapping.None;
-    text.multiline = false;
-    text.text = text;
-    addComponent(ctx, entity, text);
-    return text;
+    component := createComponent(ctx, WarTextComponent);
+    component.fontIndex = fontIndex;
+    component.fontSize = fontSize;
+    component.lineHeight = 0;
+    component.fontColor = FONT_NORMAL_COLOR;
+    component.highlightColor = FONT_HIGHLIGHT_COLOR;
+    component.highlightIndex = NO_HIGHLIGHT;
+    component.highlightCount = 0;
+    component.boundings = VEC2_ZERO;
+    component.horizontalAlign = WarTextAlignment.Left;
+    component.verticalAlign = WarTextAlignment.Top;
+    component.lineAlign = WarTextAlignment.Left;
+    component.wrapping = WarTextWrapping.None;
+    component.multiline = false;
+    component.text = text;
+    addComponent(ctx, entity, component);
+    return component;
 }
 
 addRectComponent :: (ctx: *WarContext, entity: *WarEntity, size: Vec2, color: WarColor) -> *WarRectComponent {
-    rect := createComponent(ctx, WarRectComponent);
-    rect.size = size;
-    rect.color = color;
-    addComponent(ctx, entity, rect);
-    return rect;
+    component := createComponent(ctx, WarRectComponent);
+    component.size = size;
+    component.color = color;
+    addComponent(ctx, entity, component);
+    return component;
 }
 
 addCursorComponent :: (ctx: *WarContext, entity: *WarEntity, cursorType: WarCursorType, hot: Vec2) -> *WarCursorComponent {
-    cursor := createComponent(ctx, WarCursorComponent);
-    cursor.cursorType = type;
-    cursor.hot = hot;
-    addComponent(ctx, entity, cursor);
-    return cursor;
+    component := createComponent(ctx, WarCursorComponent);
+    component.cursorType = cursorType;
+    component.hot = hot;
+    addComponent(ctx, entity, component);
+    return component;
 }
 
 addButtonComponent :: (ctx: *WarContext, entity: *WarEntity, normalSprite: WarSprite, pressedSprite: WarSprite) -> *WarButtonComponent {
-    button := createComponent(ctx, WarButtonComponent);
-    button.interactive = true;
-    button.hot = false;
-    button.active = false;
-    button.hotKey = WarKeys.None;
-    button.highlightIndex = NO_HIGHLIGHT;
-    button.normalSprite = normalSprite;
-    button.pressedSprite = pressedSprite;
-    button.clickHandler = null;
-    return button;
+    component := createComponent(ctx, WarButtonComponent);
+    component.interactive = true;
+    component.hot = false;
+    component.active = false;
+    component.hotKey = WarKeys.None;
+    component.highlightIndex = NO_HIGHLIGHT;
+    component.normalSprite = normalSprite;
+    component.pressedSprite = pressedSprite;
+    component.clickHandler = null;
+    addComponent(ctx, entity, component);
+    return component;
 }
 
 addButtonComponentFromResource :: (ctx: *WarContext, entity: *WarEntity, normalRef: WarSpriteResourceRef, pressedRef: WarSpriteResourceRef) -> *WarButtonComponent {
@@ -672,7 +677,7 @@ addButtonComponentFromResource :: (ctx: *WarContext, entity: *WarEntity, normalR
         return null;
     }
 
-    normalSprite := createSpriteFromResourceIndex(ctx, normalRef);
-    pressedSprite := createSpriteFromResourceIndex(ctx, pressedRef);
+    normalSprite := createSpriteFromResourceRef(ctx, normalRef);
+    pressedSprite := createSpriteFromResourceRef(ctx, pressedRef);
     return addButtonComponent(ctx, entity, normalSprite, pressedSprite);
 }

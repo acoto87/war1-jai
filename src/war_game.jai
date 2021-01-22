@@ -159,11 +159,11 @@ initGame :: (ctx: *WarContext) -> bool {
     // }
 
     // load fonts
-    // context->fontSprites[0] = loadFontSprite(context, "./war1_font_1.png");
-    // context->fontSprites[1] = loadFontSprite(context, "./war1_font_2.png");
+    ctx.fontSprites[0] = loadFontSprite(ctx, "./war1_font_1.png");
+    ctx.fontSprites[1] = loadFontSprite(ctx, "./war1_font_2.png");
 
     glViewport(0, 0, cast(u32) ctx.framebufferWidth, cast(u32) ctx.framebufferHeight);
-    glClearColor(0, 0, 1, 1.0);
+    glClearColor(0, 0, 0, 1.0);
 
     // check if the DATA.WAR file exists
     dataFileExists := access(DATAWAR_FILE_PATH, 4) == 0;

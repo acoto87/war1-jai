@@ -1,5 +1,6 @@
 #import "glfw";
 #import "GL";
+#import "stb_image";
 #import "nanovg";
 #import "collections";
 #import "utils";
@@ -11,12 +12,14 @@
 #load "war_database.jai";
 #load "war_file.jai";
 #load "war_resources.jai";
+#load "war_font.jai";
 #load "war_render.jai";
 #load "war_sprites.jai";
 #load "war_audio.jai";
-#load "war_pathfinding.jai";
+#load "war_pathfinder.jai";
 #load "war_components.jai";
 #load "war_entities.jai";
+#load "war_units.jai";
 #load "war_scenes.jai";
 #load "war_ui.jai";
 #load "war_player.jai";
@@ -77,3 +80,9 @@ main :: () {
 }
 
 #scope_file
+
+Compiler :: #import "Compiler";
+setTypeInfoFlags :: Compiler.compiler_set_type_info_flags;
+
+#run setTypeInfoFlags(GL_Procedures, .PROCEDURES_ARE_VOID_POINTERS);
+#run setTypeInfoFlags(GL_Procedures, .NO_SIZE_COMPLAINT);
