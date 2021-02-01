@@ -73,7 +73,7 @@ createScene :: (ctx: *WarContext, $type: WarSceneType) -> *WarScene {
         scene = alloc(WarBriefingScene);
     }
     else if (type == WarSceneType.Map) {
-        // scene = alloc(WarMap);
+        scene = alloc(WarMap);
     }
 
     if (scene != null) {
@@ -82,6 +82,19 @@ createScene :: (ctx: *WarContext, $type: WarSceneType) -> *WarScene {
     }
 
     return scene;
+}
+
+createScene :: (ctx: *WarContext, $type: Type) -> *type {
+    assert(ctx != null);
+
+    #if (type == WarDownloadScene)      return cast(*type) createScene(ctx, WarSceneType.Download);
+    else if (type == WarMenuScene)      return cast(*type) createScene(ctx, WarSceneType.MainMenu);
+    else if (type == WarBriefingScene)  return cast(*type) createScene(ctx, WarSceneType.Briefing);
+    else if (type == WarMap)            return cast(*type) createScene(ctx, WarSceneType.Map);
+    else {
+        logError("Unkown scene type: %\n", type);
+        return null;
+    }
 }
 
 freeScene :: (ctx: *WarContext, scene: *WarScene) {
@@ -118,7 +131,7 @@ updateScene :: (ctx: *WarContext) {
         // updateCheatsPanel(ctx);
         updateUIButtons(ctx, true); // !cheatsEnabledAndVisible(scene));
         updateUICursor(ctx);
-        // updateAnimations(ctx);
+        updateAnimations(ctx);
     }
 }
 
@@ -139,13 +152,20 @@ leaveScene :: (ctx: *WarContext) {
 }
 
 renderScene :: (ctx: *WarContext) {
+    assert(ctx != null);
+    assert(ctx.gfx != null);
+    assert(ctx.scene != null);
+
     gfx := ctx.gfx;
 
     nvgSave(gfx);
     nvgScale(gfx, ctx.globalScale, ctx.globalScale);
 
-    uiEntities := getUIEntities(ctx);
-    for entity : uiEntities {
+    entityManager := *ctx.scene.entityManager;
+    for * entry : entityManager.entitiesById {
+        entity := entry.value;
+        assert(entity != null);
+
         renderEntity(ctx, entity);
     }
 
@@ -156,6 +176,7 @@ renderScene :: (ctx: *WarContext) {
 
 #load "war_scene_blizzard.jai";
 #load "war_scene_menu.jai";
+#load "war_scene_briefing.jai";
 
 WarSceneFn :: #type (ctx: *WarContext);
 
@@ -171,6 +192,6 @@ sceneDescriptors : [] WarSceneDescriptor = .[
     .{ WarSceneType.Download, null,               null, null,                null },
     .{ WarSceneType.Blizzard, enterSceneBlizzard, null, updateSceneBlizzard, null },
     .{ WarSceneType.MainMenu, enterSceneMainMenu, null, null,                null },
-    .{ WarSceneType.Briefing, null,               null, null,                null },
+    .{ WarSceneType.Briefing, enterSceneBriefing, null, updateSceneBriefing, null },
     .{ WarSceneType.Map,      null,               null, null,                null }
 ];

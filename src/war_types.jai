@@ -8,28 +8,7 @@ WarResourceKind :: enum {
     Wood;
 }
 
-WarAnimationStatus :: enum {
-    NotStarted;
-    Running;
-    Finished;
-}
 
-WarSpriteAnimation :: struct {
-    name: string;
-    loop: bool;
-    loopDelay: f32;
-
-    offset: Vec2;
-    scale: Vec2;
-
-    frameDelay: f32;
-    frames: List(s32);
-    sprite: WarSprite;
-
-    animTime: f32;
-    loopTime: f32;
-    status: WarAnimationStatus;
-}
 
 
 
@@ -47,33 +26,7 @@ WarTilesetTile :: struct {
 
 
 
-WarCampaignMapType :: enum {
-    Humans01 :: 117;
-    Orcs01;
-    Humans02;
-    Orcs02;
-    Humans03;
-    Orcs03;
-    Humans04;
-    Orcs04;
-    Humans05;
-    Orcs05;
-    Humans06;
-    Orcs06;
-    Humans07;
-    Orcs07;
-    Humans08;
-    Orcs08;
-    Humans09;
-    Orcs09;
-    Humans10;
-    Orcs10;
-    Humans11;
-    Orcs11;
-    Humans12;
-    Orcs12;
-    Custom;
-}
+
 
 WarFeatureType :: enum {
     // units

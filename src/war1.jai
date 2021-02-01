@@ -15,6 +15,7 @@
 #load "war_font.jai";
 #load "war_render.jai";
 #load "war_sprites.jai";
+#load "war_animations.jai";
 #load "war_audio.jai";
 #load "war_pathfinder.jai";
 #load "war_components.jai";
@@ -23,6 +24,7 @@
 #load "war_scenes.jai";
 #load "war_ui.jai";
 #load "war_player.jai";
+#load "war_campaigns.jai";
 #load "war_map.jai";
 #load "war_game.jai";
 

@@ -105,6 +105,52 @@ getDirFromMousePos :: (ctx: *WarContext) -> Vec2 {
     return dir;
 }
 
+getScaledSpeed :: (ctx: *WarContext, t: f32) -> f32 {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+
+    t *= ctx.globalSpeed;
+
+    if (ctx.scene.type == WarSceneType.Map) {
+        map := cast(*WarMap) ctx.scene;
+
+        if (map.settings.gameSpeed < WarMapSpeed.Normal) {
+            t *= 1.0 - cast(s32) (WarMapSpeed.Normal - map.settings.gameSpeed) * 0.25;
+        } else if (map.settings.gameSpeed > WarMapSpeed.Normal) {
+            t *= 1.0 + cast(s32) (map.settings.gameSpeed - WarMapSpeed.Normal) * 0.5;
+        }
+    }
+
+    return t;
+}
+
+getScaledTime :: inline (ctx: *WarContext, t: f32) -> f32 {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+
+    t /= ctx.globalSpeed;
+
+    if (ctx.scene.type == WarSceneType.Map) {
+        map := cast(*WarMap) ctx.scene;
+
+        if (map.settings.gameSpeed < WarMapSpeed.Normal) {
+            t /= 1.0 - cast(s32) (WarMapSpeed.Normal - map.settings.gameSpeed) * 0.25;
+        } else if (map.settings.gameSpeed > WarMapSpeed.Normal) {
+            t /= 1.0 + cast(s32) (map.settings.gameSpeed - WarMapSpeed.Normal) * 0.5;
+        }
+    }
+
+    return t;
+}
+
+isRetail :: inline (ctx: *WarContext) -> bool {
+    return ctx.warFile.type == WarFileType.Retail;
+}
+
+isDemo :: inline (ctx: *WarContext) -> bool {
+    return ctx.warFile.type == WarFileType.Demo;
+}
+
 initGame :: (ctx: *WarContext) -> bool {
     glfwWindowHint(GLFW_RESIZABLE, 0);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);

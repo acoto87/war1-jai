@@ -4,7 +4,7 @@ WarLevelResult :: enum {
     Lose;
 }
 
-WarMapSpeed :: enum {
+WarMapSpeed :: enum s32 {
     Slowest;
     Slow;
     Normal;

@@ -123,30 +123,30 @@ WarAudioId :: enum {
     Intro3                  :: 548; // "No one knew where these..."
     Intro4                  :: 549; // "With an ingenious..."
     Intro5                  :: 550; // "Welcome to the World of Warcraft"
-    CampaignsHumanIntro01   :: 551;
-    CampaignsHumanIntro02   :: 552;
-    CampaignsHumanIntro03   :: 553;
-    CampaignsHumanIntro04   :: 554;
-    CampaignsHumanIntro05   :: 555;
-    CampaignsHumanIntro06   :: 556;
-    CampaignsHumanIntro07   :: 557;
-    CampaignsHumanIntro08   :: 558;
-    CampaignsHumanIntro09   :: 559;
-    CampaignsHumanIntro10   :: 560;
-    CampaignsHumanIntro11   :: 561;
-    CampaignsHumanIntro12   :: 562;
-    CampaignsOrcIntro01     :: 563;
-    CampaignsOrcIntro02     :: 564;
-    CampaignsOrcIntro03     :: 565;
-    CampaignsOrcIntro04     :: 566;
-    CampaignsOrcIntro05     :: 567;
-    CampaignsOrcIntro06     :: 568;
-    CampaignsOrcIntro07     :: 569;
-    CampaignsOrcIntro08     :: 570;
-    CampaignsOrcIntro09     :: 571;
-    CampaignsOrcIntro10     :: 572;
-    CampaignsOrcIntro11     :: 573;
-    CampaignsOrcIntro12     :: 574;
+    CampaignHumansIntro01   :: 551;
+    CampaignHumansIntro02   :: 552;
+    CampaignHumansIntro03   :: 553;
+    CampaignHumansIntro04   :: 554;
+    CampaignHumansIntro05   :: 555;
+    CampaignHumansIntro06   :: 556;
+    CampaignHumansIntro07   :: 557;
+    CampaignHumansIntro08   :: 558;
+    CampaignHumansIntro09   :: 559;
+    CampaignHumansIntro10   :: 560;
+    CampaignHumansIntro11   :: 561;
+    CampaignHumansIntro12   :: 562;
+    CampaignOrcsIntro01     :: 563;
+    CampaignOrcsIntro02     :: 564;
+    CampaignOrcsIntro03     :: 565;
+    CampaignOrcsIntro04     :: 566;
+    CampaignOrcsIntro05     :: 567;
+    CampaignOrcsIntro06     :: 568;
+    CampaignOrcsIntro07     :: 569;
+    CampaignOrcsIntro08     :: 570;
+    CampaignOrcsIntro09     :: 571;
+    CampaignOrcsIntro10     :: 572;
+    CampaignOrcsIntro11     :: 573;
+    CampaignOrcsIntro12     :: 574;
     HumanDefeat             :: 575; // "Your failure in battle"
     OrcDefeat               :: 576; // "You pitiful"
     OrcVictory1             :: 577; // "The feel of bones"

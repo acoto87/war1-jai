@@ -7,9 +7,9 @@ enterSceneMainMenu :: (ctx: *WarContext) {
 
     createUICursor(ctx, "cursor", WarCursorType.Arrow, VEC2_ZERO);
 
-    // if (!isDemo(ctx)) {
-    //     createAudio(ctx, WAR_MUSIC_00, true);
-    // }
+    if (!isDemo(ctx)) {
+        // createAudio(ctx, WAR_MUSIC_00, true);
+    }
 }
 
 createMainMenu :: (ctx: *WarContext) {
@@ -318,17 +318,17 @@ handleMenuQuit :: (ctx: *WarContext, entity: *WarEntity) {
 }
 
 handleSinglePlayerOrc :: (ctx: *WarContext, entity: *WarEntity) {
-    // scene := createScene(ctx, WarBriefingScene);
-    // scene.race = WarRace.Orcs;
-    // scene.mapType = WarCampaignMapType.Orcs01;
-    // setNextScene(ctx, scene, 1.0);
+    scene := createScene(ctx, WarBriefingScene);
+    scene.race = WarRace.Orcs;
+    scene.mapType = WarCampaignMapType.Orcs01;
+    setNextScene(ctx, scene, 1.0);
 }
 
 handleSinglePlayerHuman :: (ctx: *WarContext, entity: *WarEntity) {
-    // scene := createScene(ctx, WarBriefingScene);
-    // scene.race = WarRace.Humans;
-    // scene.mapType = WarCampaignMapType.Humans01;
-    // setNextScene(ctx, scene, 1.0);
+    scene := createScene(ctx, WarBriefingScene);
+    scene.race = WarRace.Humans;
+    scene.mapType = WarCampaignMapType.Humans01;
+    setNextScene(ctx, scene, 1.0);
 }
 
 handleCustomGame :: (ctx: *WarContext, entity: *WarEntity) {

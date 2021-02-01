@@ -537,25 +537,60 @@ staticEntityId: WarEntityId = 0;
 WarRenderFunc :: #type (ctx: *WarContext, entity: *WarEntity);
 
 renderFns : [] WarRenderFunc = .[
-    null,           // NONE
-    renderImage,    // IMAGE
-    null,           // UNIT
-    null,           // ROAD
-    null,           // WALL
-    null,           // RUIN
-    null,           // FOREST
-    renderText,     // TEXT
-    renderRect,     // RECT
-    renderButton,   // BUTTON
-    renderImage,    // CURSOR
-    null,           // AUDIO
-    null,           // PROJECTILE
-    null,           // RAIN_OF_FIRE
-    null,           // POISON_CLOUD
-    null,           // SIGHT
-    null,           // MINIMAP
-    null,           // ANIMATION
+    null,               // NONE
+    renderImage,        // IMAGE
+    null,               // UNIT
+    null,               // ROAD
+    null,               // WALL
+    null,               // RUIN
+    null,               // FOREST
+    renderText,         // TEXT
+    renderRect,         // RECT
+    renderButton,       // BUTTON
+    renderImage,        // CURSOR
+    null,               // AUDIO
+    null,               // PROJECTILE
+    null,               // RAIN_OF_FIRE
+    null,               // POISON_CLOUD
+    null,               // SIGHT
+    null,               // MINIMAP
+    renderAnimation,    // ANIMATION
 ];
+
+renderAnimation :: (ctx: *WarContext, entity: *WarEntity) {
+    gfx := ctx.gfx;
+
+    transform := getComponent(ctx, entity, WarTransformComponent);
+    assert(transform != null);
+
+    animations := getComponent(ctx, entity, WarAnimationsComponent);
+    assert(animations != null);
+
+    if (animations.enabled)
+    {
+        nvgTranslate(gfx, transform.position.x, transform.position.y);
+
+        for anim : animations.animations {
+            if (anim.status == WarAnimationStatus.Running) {
+                nvgSave(gfx);
+
+                nvgTranslate(gfx, anim.offset.x, anim.offset.y);
+                nvgScale(gfx, anim.scale.x, anim.scale.y);
+
+                animFrameIndex := cast(s32) (anim.animTime * anim.frames.count);
+                animFrameIndex = clamp(animFrameIndex, 0, cast(s32) anim.frames.count - 1);
+
+                spriteFrameIndex := anim.frames.items[animFrameIndex];
+                frame := getSpriteFrame(ctx, anim.sprite, spriteFrameIndex);
+
+                updateSpriteImage(ctx, anim.sprite, frame.data);
+                renderSprite(ctx, anim.sprite, VEC2_ZERO, VEC2_ONE);
+
+                nvgRestore(gfx);
+            }
+        }
+    }
+}
 
 renderImage :: (ctx: *WarContext, entity: *WarEntity) {
     gfx := ctx.gfx;

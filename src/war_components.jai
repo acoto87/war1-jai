@@ -99,7 +99,7 @@ WarAnimationsComponent :: struct {
     using base: WarComponent;
     base.type = WarComponentType.Animations;
 
-    animations: List(WarSpriteAnimation);
+    animations: List(*WarSpriteAnimation);
 }
 
 WarRoadComponent :: struct {
@@ -609,6 +609,13 @@ addSpriteComponentFromResource :: (ctx: *WarContext, entity: *WarEntity, spriteR
     return component;
 }
 
+addAnimationsComponent :: (ctx: *WarContext, entity: *WarEntity) -> *WarAnimationsComponent {
+    component := createComponent(ctx, WarAnimationsComponent);
+    init(*component.animations);
+    addComponent(ctx, entity, component);
+    return component;
+}
+
 addUIComponent :: (ctx: *WarContext, entity: *WarEntity, name: string) -> *WarUIComponent {
     component := createComponent(ctx, WarUIComponent);
     component.name = name;
@@ -631,7 +638,7 @@ addTextComponent :: (ctx: *WarContext, entity: *WarEntity, fontIndex: s32, fontS
     component.lineAlign = WarTextAlignment.Left;
     component.wrapping = WarTextWrapping.None;
     component.multiline = false;
-    component.text = allocString(text.count, text);
+    component.text = allocString(text);
     addComponent(ctx, entity, component);
     return component;
 }

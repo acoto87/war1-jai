@@ -24,7 +24,7 @@ setUIText :: (ctx: *WarContext, entity: *WarEntity, text: string) {
 
     free(textComponent.text);
 
-    textComponent.text = allocString(text.count, text);
+    textComponent.text = allocString(text);
     textComponent.enabled = true;
 }
 
