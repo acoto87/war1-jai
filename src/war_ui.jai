@@ -6,12 +6,13 @@ clearUIText :: (ctx: *WarContext, entity: *WarEntity) {
     assert(ctx != null);
     assert(entity != null);
 
-    text := getComponent(ctx, entity, WarTextComponent);
-    assert(text != null);
+    textComponent := getComponent(ctx, entity, WarTextComponent);
+    assert(textComponent != null);
 
-    free(text.text);
-    text.text = "";
-    text.enabled = false;
+    free(textComponent.text);
+
+    textComponent.text = "";
+    textComponent.enabled = false;
 }
 
 setUIText :: (ctx: *WarContext, entity: *WarEntity, text: string) {
@@ -23,7 +24,7 @@ setUIText :: (ctx: *WarContext, entity: *WarEntity, text: string) {
 
     free(textComponent.text);
 
-    textComponent.text = text;
+    textComponent.text = allocString(text.count, text);
     textComponent.enabled = true;
 }
 
@@ -31,7 +32,7 @@ setUITextFormat :: (ctx: *WarContext, entity: *WarEntity, format: string, args: 
     assert(ctx != null);
     assert(entity != null);
 
-    text := sprint(format, args);
+    text := tprint(format, args);
     setUIText(ctx, entity, text);
 }
 
@@ -370,8 +371,7 @@ updateUIButtons :: (ctx: *WarContext, hotKeysEnabled: bool) {
     // in their same location, and if the newly shown button is
     // after in the list, then it will update in this same frame
     // which it shouldn't happen
-    buttonsToUpdate: HashSet(WarEntityId);
-    init(*buttonsToUpdate, HashSetOptions(WarEntityId).{
+    buttonsToUpdate := createHashSet(WarEntityId, HashSetOptions(WarEntityId).{
         hashFn = hashEntityId
     });
     defer uninit(*buttonsToUpdate);
@@ -424,14 +424,14 @@ updateUIButtons :: (ctx: *WarContext, hotKeysEnabled: bool) {
                     button.active = true;
                 }
             } else if (pointerInside) {
-                for j : 0..buttons.count-1 {
-                    other := buttons.items[j];
+                for other : buttons {
                     otherButton := getComponent(ctx, other, WarButtonComponent);
                     otherButton.hot = false;
                     otherButton.active = false;
                 }
 
                 button.hot = true;
+                button.active = false;
             } else {
                 button.hot = false;
                 button.active = false;

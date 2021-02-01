@@ -23,14 +23,14 @@ build :: () {
 
     // Don't produce output for this default workspace
     opts := getBuildOptions();
-    opts.output_type = BuildOutputType.NO_OUTPUT;
+    opts.output_type = .NO_OUTPUT;
     setBuildOptions(opts);
 
-    opts.output_type = BuildOutputType.EXECUTABLE;
+    opts.output_type = .EXECUTABLE;
     opts.output_executable_name = EXECUTABLE_NAME;
     opts.output_path = OUTPUT_FOLDER_PATH;
     opts.shorten_filenames_in_error_messages = false;
-    opts.backend = Compiler.Backend.LLVM;
+    opts.backend = .LLVM;
     array_add(*opts.modules_search_path_array, MODULES_PATH);
 
     makeDirectoryIfNotExist(opts.output_path);
@@ -85,7 +85,6 @@ getBuildOptions :: Compiler.get_build_options;
 setBuildOptions :: Compiler.set_build_options;
 createWorkspace :: Compiler.compiler_create_workspace;
 addBuildFile :: Compiler.add_build_file;
-BuildOutputType :: Compiler.Build_Output_Type;
 
 File :: #import "File";
 makeDirectoryIfNotExist :: File.make_directory_if_it_does_not_exist;

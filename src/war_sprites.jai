@@ -111,7 +111,7 @@ createSpriteFromResource :: (ctx: *WarContext, resource: *WarResource, frameIndi
             sprite = createSpriteFromFrames(ctx, frameWidth, frameHeight, frames);
 
             if (frameIndices.count > 0) {
-                freeArray(frames);
+                free(frames);
             }
         }
         case WarResourceType.Cursor; {

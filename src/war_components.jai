@@ -631,7 +631,7 @@ addTextComponent :: (ctx: *WarContext, entity: *WarEntity, fontIndex: s32, fontS
     component.lineAlign = WarTextAlignment.Left;
     component.wrapping = WarTextWrapping.None;
     component.multiline = false;
-    component.text = text;
+    component.text = allocString(text.count, text);
     addComponent(ctx, entity, component);
     return component;
 }

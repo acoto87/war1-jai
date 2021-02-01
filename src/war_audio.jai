@@ -216,8 +216,8 @@ transcodeXmiToMid :: (xmiData: *u8, xmiLength: u32, midLength: *u32) -> *u8 {
     mbInitFromMemory(*bufInput, xmiData, xmiLength);
 
     bufOutput: MemoryBuffer;
-    defer mbFree(*bufOutput);
     mbInitEmpty(*bufOutput);
+    defer mbFree(*bufOutput);
 
     if (!mbScanTo(*bufInput, "EVNT", 4)) {
         return null;
@@ -227,8 +227,8 @@ transcodeXmiToMid :: (xmiData: *u8, xmiLength: u32, midLength: *u32) -> *u8 {
         return null;
     }
 
-    lstTokens: List(MidiToken);
-    init(*lstTokens);
+    lstTokens := createList(MidiToken);
+    defer uninit(*lstTokens);
 
     token: *MidiToken;
     tokenTime: s32 = 0;

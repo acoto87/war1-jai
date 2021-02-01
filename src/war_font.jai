@@ -532,14 +532,14 @@ nvgSingleSpriteTextSpan :: (gfx: *NVGcontext,
                 }
 
                 if (c != #char " ") {
-                    nvgRenderBatchImage(gfx, *batch, rs, rd, VEC2_ONE);
+                    nvgRenderBatchImage(gfx, batch, rs, rd, VEC2_ONE);
                 }
 
                 x += rs.w + fontData.advance;
             }
         }
 
-        nvgEndImageBatch(gfx, *batch);
+        nvgEndImageBatch(gfx, batch);
         nvgRestore(gfx);
     }
 

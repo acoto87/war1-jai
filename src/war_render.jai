@@ -18,8 +18,8 @@ NVGimageBatch :: struct {
     vertices: *NVGvertex;    // the vertices
 }
 
-nvgBeginImageBatch :: (gfx: *NVGcontext, image: s32, cimages: s32) -> NVGimageBatch {
-    batch: NVGimageBatch;
+nvgBeginImageBatch :: (gfx: *NVGcontext, image: s32, cimages: s32) -> *NVGimageBatch {
+    batch := alloc(NVGimageBatch);
     batch.image = image;
     batch.cimages = cimages;
     batch.nvertices = 0;
@@ -92,12 +92,13 @@ nvgEndImageBatch :: (gfx: *NVGcontext, batch: *NVGimageBatch) {
 	gfx.textTriCount += batch.nvertices/3;
 
     free(batch.vertices);
+    free(batch);
 }
 
 nvgRenderSubImage :: (gfx: *NVGcontext, image: s32, rs: Rect, rd: Rect, scale: Vec2) {
     batch := nvgBeginImageBatch(gfx, image, 1);
-    nvgRenderBatchImage(gfx, *batch, rs, rd, scale);
-    nvgEndImageBatch(gfx, *batch);
+    nvgRenderBatchImage(gfx, batch, rs, rd, scale);
+    nvgEndImageBatch(gfx, batch);
 }
 
 nvgRenderImage :: (gfx: *NVGcontext, image: s32, rd: Rect, scale: Vec2) {

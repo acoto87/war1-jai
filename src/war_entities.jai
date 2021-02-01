@@ -29,35 +29,69 @@ WarEntity :: struct {
 }
 
 WarEntityManager :: struct {
-    entities: List(WarEntity);
-    entitiesByType: HashMap(WarEntityType, List(*WarEntity));
-    unitsByType: HashMap(WarUnitType, List(*WarEntity));
-    entitiesById: HashMap(WarEntityId, *WarEntity);
-    uiEntities: List(*WarEntity);
+    entitiesById: HashMap(WarEntityId, WarEntity);
+    entitiesByType: HashMap(WarEntityType, List(WarEntityId));
+    unitsByType: HashMap(WarUnitType, List(WarEntityId));
+    uiEntities: List(WarEntityId);
 }
 
 operator == :: (e1: WarEntity, e2: WarEntity) -> bool {
     return e1.id == e2.id;
 }
 
-equalsEntity :: (e1: WarEntity, e2: WarEntity) -> bool {
+equalsEntity :: inline (e1: WarEntity, e2: WarEntity) -> bool {
     return e1.id == e2.id;
 }
 
-equalsEntity :: (e1: *WarEntity, e2: *WarEntity) -> bool {
+equalsEntity :: inline (e1: *WarEntity, e2: *WarEntity) -> bool {
     return e1.id == e2.id;
 }
 
-hashEntityType :: (type: WarEntityType) -> s64 {
+hashEntityType :: inline (type: WarEntityType) -> s64 {
     return cast(s64) type;
 }
 
-hashUnitType :: (type: WarUnitType) -> s64 {
+hashUnitType :: inline (type: WarUnitType) -> s64 {
     return cast(s64) type;
 }
 
-hashEntityId :: (id: WarEntityId) -> s64 {
+hashEntityId :: inline (id: WarEntityId) -> s64 {
     return cast(s64) id;
+}
+
+initEntityManager :: (manager: *WarEntityManager) {
+    // initialize the entities by id map
+    init(*manager.entitiesById, HashMapOptions(WarEntityId, WarEntity).{
+        hashFn = hashEntityId
+    });
+
+    // initialize entity by type map
+    init(*manager.entitiesByType, HashMapOptions(WarEntityType, List(WarEntityId)).{
+        hashFn = hashEntityType
+    });
+
+    for entry : iterate(WarEntityType) {
+        set(*manager.entitiesByType, entry.value, createList(WarEntityId));
+    }
+
+    // initialize unit by type map
+    init(*manager.unitsByType, HashMapOptions(WarUnitType, List(WarEntityId)).{
+        hashFn = hashUnitType
+    });
+
+    for entry : iterate(WarUnitType) {
+        set(*manager.unitsByType, entry.value, createList(WarEntityId));
+    }
+
+    // initialize ui entities list
+    init(*manager.uiEntities);
+}
+
+freeEntityManager :: (manager: *WarEntityManager) {
+    uninit(*manager.entitiesById);
+    uninit(*manager.entitiesByType);
+    uninit(*manager.unitsByType);
+    uninit(*manager.uiEntities);
 }
 
 createEntity :: (ctx: *WarContext, type: WarEntityType) -> *WarEntity {
@@ -68,12 +102,12 @@ createEntity :: (ctx: *WarContext, type: WarEntityType) -> *WarEntity {
 
     entityManager := *ctx.scene.entityManager;
 
-    entity := addNew(*entityManager.entities);
+    entity: WarEntity;
     entity.id = staticEntityId;
     entity.type = type;
     entity.enabled = true;
 
-    for i : range(s32, 0, getCount(WarComponentType)) {
+    for i : range(s32, 0, #run getCount(WarComponentType)) {
         entity.components[i] = -1;
     }
 
@@ -81,58 +115,15 @@ createEntity :: (ctx: *WarContext, type: WarEntityType) -> *WarEntity {
 
     found, entitiesOfType := ref(*entityManager.entitiesByType, type);
     if (found) {
-        add(entitiesOfType, entity);
+        add(entitiesOfType, entity.id);
     }
 
-    if (isUIEntity(entity)) {
-        add(*entityManager.uiEntities, entity);
+    if (isUIEntity(*entity)) {
+        add(*entityManager.uiEntities, entity.id);
     }
 
-    return entity;
-}
-
-initEntityManager :: (manager: *WarEntityManager) {
-    // initialize entities list
-    init(*manager.entities);
-
-    // initialize entity by type map
-    init(*manager.entitiesByType, HashMapOptions(WarEntityType, List(*WarEntity)).{
-        hashFn = hashEntityType
-    });
-
-    for entry : iterate(WarEntityType) {
-        list: List(*WarEntity);
-        init(*list);
-        set(*manager.entitiesByType, entry.value, list);
-    }
-
-    // initialize unit by type map
-    init(*manager.unitsByType, HashMapOptions(WarUnitType, List(*WarEntity)).{
-        hashFn = hashUnitType
-    });
-
-    for entry : iterate(WarUnitType) {
-        list: List(*WarEntity);
-        init(*list);
-
-        set(*manager.unitsByType, entry.value, list);
-    }
-
-    // initialize the entities by id map
-    init(*manager.entitiesById, HashMapOptions(WarEntityId, *WarEntity).{
-        hashFn = hashEntityId
-    });
-
-    // initialize ui entities list
-    init(*manager.uiEntities);
-}
-
-freeEntityManager :: (entityManager: *WarEntityManager) {
-    uninit(*entityManager.entities);
-    uninit(*entityManager.entitiesByType);
-    uninit(*entityManager.unitsByType);
-    uninit(*entityManager.entitiesById);
-    uninit(*entityManager.uiEntities);
+    _, result := ref(*entityManager.entitiesById, entity.id);
+    return result;
 }
 
 removeEntityById :: (ctx: *WarContext, id: WarEntityId) {
@@ -144,26 +135,29 @@ removeEntityById :: (ctx: *WarContext, id: WarEntityId) {
     logDebug("trying to remove entity with id: %\n", id);
 
     entity := findEntity(ctx, id);
-    if (entity) {
+    if (entity != null) {
         // pthread_mutex_lock(&context.__mutex);
+
+        if (isUIEntity(entity)) {
+            removeItem(*entityManager.uiEntities, entity.id);
+        } else if (isUnit(entity)) {
+            unit := getComponent(ctx, entity, WarUnitComponent);
+            found, entities := ref(*entityManager.unitsByType, unit.unitType);
+            if (found) {
+                removeItem(entities, entity.id);
+            }
+        }
+
+        found, entities := ref(*entityManager.entitiesByType, entity.type);
+        if (found) {
+            removeItem(entities, entity.id);
+        }
 
         for entry : iterate(WarComponentType) {
             removeComponent(ctx, entity, entry.value);
         }
 
-        if (isUIEntity(entity)) {
-            removeItem(*entityManager.uiEntities, entity);
-        } else if (isUnit(entity)) {
-            unit := getComponent(ctx, entity, WarUnitComponent);
-            unitTypeList := getUnitsOfType(ctx, unit.unitType);
-            removeItem(unitTypeList, entity);
-        }
-
-        entityTypeList := getEntitiesOfType(ctx, entity.type);
-        removeItem(entityTypeList, entity);
-
         removeKey(*entityManager.entitiesById, entity.id);
-        removeItem(*entityManager.entities, <<entity, equalsEntity);
 
         // pthread_mutex_unlock(&context.__mutex);
 
@@ -171,44 +165,65 @@ removeEntityById :: (ctx: *WarContext, id: WarEntityId) {
     }
 }
 
-getEntities :: (ctx: *WarContext) -> *List(WarEntity) {
+getEntitiesOfType :: (ctx: *WarContext, type: WarEntityType) -> List(*WarEntity) {
     assert(ctx != null);
     assert(ctx.scene != null);
 
-    entityManager := *ctx.scene.entityManager;
-    return *entityManager.entities;
-}
-
-getEntitiesOfType :: (ctx: *WarContext, type: WarEntityType) -> *List(*WarEntity) {
-    assert(ctx != null);
-    assert(ctx.scene != null);
+    entitiesOfType := createList(*WarEntity);
 
     entityManager := *ctx.scene.entityManager;
     found, entities := ref(*entityManager.entitiesByType, type);
-    return entities;
+    if (found) {
+        for id : entities {
+            found, entity := ref(*entityManager.entitiesById, id);
+            assert(found && entity != null);
+
+            add(*entitiesOfType, entity);
+        }
+    }
+
+    return entitiesOfType;
 }
 
-getUnitsOfType :: (ctx: *WarContext, type: WarUnitType) -> *List(*WarEntity) {
+getUnitsOfType :: (ctx: *WarContext, type: WarUnitType) -> List(*WarEntity) {
     assert(ctx != null);
     assert(ctx.scene != null);
 
+    unitsOfType := createList(*WarEntity);
+
     entityManager := *ctx.scene.entityManager;
     found, entities := ref(*entityManager.unitsByType, type);
-    return entities;
+    if (found) {
+        for id : entities {
+            found, entity := ref(*entityManager.entitiesById, id);
+            assert(found && entity != null);
+
+            add(*unitsOfType, entity);
+        }
+    }
+
+    return unitsOfType;
 }
 
 getUnitsOfPlayer :: (ctx: *WarContext, player: u8) -> List(*WarEntity) {
     assert(ctx != null);
     assert(ctx.scene != null);
 
-    unitsOfPlayer: List(*WarEntity);
-    init(*unitsOfPlayer);
+    unitsOfPlayer := createList(*WarEntity);
 
-    entities := getEntitiesOfType(ctx, WarEntityType.Unit);
-    for entity : entities {
-        unit := getComponent(ctx, entity, WarUnitComponent);
-        if (unit.player == player) {
-            add(*unitsOfPlayer, entity);
+    entityManager := *ctx.scene.entityManager;
+    found, entities := ref(*entityManager.entitiesByType, WarEntityType.Unit);
+    if (found) {
+        for id : entities {
+            found, entity := ref(*entityManager.entitiesById, id);
+            assert(found && entity != null);
+
+            unit := getComponent(ctx, entity, WarUnitComponent);
+            assert(unit != null);
+
+            if (unit.player == player) {
+                add(*unitsOfPlayer, entity);
+            }
         }
     }
 
@@ -219,26 +234,44 @@ getUnitsOfTypeOfPlayer :: (ctx: *WarContext, type: WarUnitType, player: u8) -> L
     assert(ctx != null);
     assert(ctx.scene != null);
 
-    unitsOfPlayer: List(*WarEntity);
-    init(*unitsOfPlayer);
+    unitsOfPlayer := createList(*WarEntity);
 
-    entities := getUnitsOfType(ctx, type);
-    for entity : entities {
-        unit := getComponent(ctx, entity, WarUnitComponent);
-        if (unit.player == player) {
-            add(*unitsOfPlayer, entity);
+    entityManager := *ctx.scene.entityManager;
+    found, entities := ref(*entityManager.unitsByType, type);
+    if (found) {
+        for id : entities {
+            found, entity := ref(*entityManager.entitiesById, id);
+            assert(found && entity != null);
+
+            unit := getComponent(ctx, entity, WarUnitComponent);
+            assert(unit != null);
+
+            if (unit.player == player) {
+                add(*unitsOfPlayer, entity);
+            }
         }
     }
 
     return unitsOfPlayer;
 }
 
-getUIEntities :: (ctx: *WarContext) -> *List(*WarEntity) {
+getUIEntities :: (ctx: *WarContext) -> List(*WarEntity) {
     assert(ctx != null);
     assert(ctx.scene != null);
 
+    uiEntities := createList(*WarEntity);
+
     entityManager := *ctx.scene.entityManager;
-    return *entityManager.uiEntities;
+    for id : entityManager.uiEntities {
+        found, entity := ref(*entityManager.entitiesById, id);
+        assert(found && entity != null);
+
+        if (isUIEntity(entity)) {
+            add(*uiEntities, entity);
+        }
+    }
+
+    return uiEntities;
 }
 
 findEntity :: (ctx: *WarContext, id: WarEntityId) -> *WarEntity {
@@ -246,8 +279,8 @@ findEntity :: (ctx: *WarContext, id: WarEntityId) -> *WarEntity {
     assert(ctx.scene != null);
 
     entityManager := *ctx.scene.entityManager;
-    found, entity := get(*entityManager.entitiesById, id);
-    return entity;
+    found, entity := ref(*entityManager.entitiesById, id);
+    return ifx found then entity else null;
 }
 
 findEntityAt :: (ctx: *WarContext, targetTile: Vec2) -> *WarEntity {
@@ -326,13 +359,22 @@ findEntityAt :: (ctx: *WarContext, targetTile: Vec2) -> *WarEntity {
 // }
 
 findUIEntity :: (ctx: *WarContext, name: string) -> *WarEntity {
-    uiEntities := getUIEntities(ctx);
-    for entity : uiEntities {
+    assert(ctx != null);
+    assert(ctx.scene != null);
+
+    entityManager := *ctx.scene.entityManager;
+    for id : entityManager.uiEntities {
+        found, entity := ref(*entityManager.entitiesById, id);
+        assert(found && entity != null);
+
         ui := getComponent(ctx, entity, WarUIComponent);
+        assert(ui != null);
+
         if (ui.name == name) {
             return entity;
         }
     }
+
     return null;
 }
 
@@ -477,7 +519,7 @@ renderEntity :: (ctx: *WarContext, entity: *WarEntity) {
 
     if (entity.id > 0 && entity.enabled) {
         renderFn := renderFns[cast(s32) entity.type];
-        if (!renderFn) {
+        if (renderFn == null) {
             logError("Entity of type % can't be render. renderFn = NULL\n", entity.type);
             return;
         }
@@ -674,18 +716,7 @@ renderButton :: (ctx: *WarContext, entity: *WarEntity) {
                 params.fontSprite = ctx.fontSprites[text.fontIndex];
                 params.fontData = fontsData[text.fontIndex];
 
-
-                // THERE IS AN ERROR HERE WHEN i HOVER THE FIRST BUTTON
-                // THE 8TH ELEMENT BUTTON GETS DELETED/OVERWRITTEN OR SOMETHING
-                // THERE IS SOMETHING WRONG IN nvgSingleSpriteText i THINK
-
-                buttons := getEntitiesOfType(ctx, WarEntityType.Button);
-                e8 := buttons.items[8];
-                print("1 % >>>> %\n", entity.id, <<e8);
-
                 nvgSingleSpriteText(gfx, toCString(text.text, tempAllocator), 0, 0, params);
-
-                print("2 % >>>> %\n", entity.id, <<e8);
             }
         }
 
