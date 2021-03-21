@@ -19,7 +19,7 @@ BUILD_FILE_PATH :: "src/war1.jai";
 ASSETS_FOLDER_PATH :: "assets/";
 
 build :: () {
-    set_working_directory(#filepath);
+    setWorkingDirectory(#filepath);
 
     // Don't produce output for this default workspace
     opts := getBuildOptions();
@@ -31,7 +31,13 @@ build :: () {
     opts.output_path = OUTPUT_FOLDER_PATH;
     opts.shorten_filenames_in_error_messages = false;
     opts.backend = .LLVM;
-    array_add(*opts.modules_search_path_array, MODULES_PATH);
+
+    importPath: [..] string;
+    for path : opts.import_path {
+        arrayAdd(*importPath, path);
+    }
+    arrayAdd(*importPath, MODULES_PATH);
+    opts.import_path = importPath;
 
     makeDirectoryIfNotExist(opts.output_path);
 
@@ -94,7 +100,12 @@ FileVisitInfo :: FileUtilities.File_Visit_Info;
 copyFile :: FileUtilities.copy_file;
 visitFiles :: FileUtilities.visit_files;
 
-#import "Basic";
+Basic :: #import "Basic";
+assert :: Basic.assert;
+print :: Basic.print;
+advance :: Basic.advance;
+arrayAdd :: Basic.array_add;
+setWorkingDirectory :: Basic.set_working_directory;
 
 String :: #import "String";
 getDirectoryPath :: String.path_strip_filename;

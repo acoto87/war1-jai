@@ -34,12 +34,18 @@ EXIT_FAILURE :: -1;
 errorCallback :: (error: s32, description: *u8) #c_call {
     newContext: Context;
     push_context newContext {
+        loggerData := LoggerData.{};
+        initLogger(*loggerData);
+
         logError("Error: %\n", toString(description));
     }
 }
 
 main :: () {
-    initLog(LogSeverity.Debug);
+    loggerData := LoggerData.{
+        severity = LogSeverity.Debug
+    };
+    initLogger(*loggerData);
 
     glfwSetErrorCallback(errorCallback);
 
