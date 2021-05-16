@@ -4,26 +4,23 @@
 #import "nanovg";
 #import "collections";
 #import "utils";
+#import "rts2d";
 
 #load "war_constants.jai";
-#load "war_color.jai";
-#load "war_math.jai";
 #load "war_types.jai";
 #load "war_database.jai";
 #load "war_file.jai";
 #load "war_resources.jai";
 #load "war_font.jai";
-#load "war_render.jai";
 #load "war_sprites.jai";
 #load "war_animations.jai";
 #load "war_audio.jai";
-#load "war_pathfinder.jai";
 #load "war_components.jai";
-#load "war_entities.jai";
-#load "war_units.jai";
+// #load "war_entities.jai";
+// #load "war_units.jai";
 #load "war_scenes.jai";
 #load "war_ui.jai";
-#load "war_player.jai";
+// #load "war_player.jai";
 #load "war_campaigns.jai";
 #load "war_map.jai";
 #load "war_game.jai";
@@ -31,15 +28,7 @@
 EXIT_SUCCESS :: 0;
 EXIT_FAILURE :: -1;
 
-errorCallback :: (error: s32, description: *u8) #c_call {
-    newContext: Context;
-    push_context newContext {
-        loggerData := LoggerData.{};
-        initLogger(*loggerData);
-
-        logError("Error: %\n", toString(description));
-    }
-}
+#add_context gameContext: *WarContext;
 
 main :: () {
     loggerData := LoggerData.{
@@ -47,15 +36,10 @@ main :: () {
     };
     initLogger(*loggerData);
 
-    glfwSetErrorCallback(errorCallback);
-
-    if (!glfwInit()) {
-        logError("Error initializing GLFW!\n");
-        exit(EXIT_FAILURE);
-    }
-
     ctx: WarContext;
-    if (!initGame(*ctx)) {
+    context.gameContext = *ctx;
+
+    if (!initWarGame()) {
         logError("Can't initialize the game!\n");
         exit(EXIT_FAILURE);
     }
@@ -72,17 +56,15 @@ main :: () {
         );
         glfwSetWindowTitle(ctx.window, toCString(ctx.windowTitle, tempAllocator));
 
-        inputGame(*ctx);
-        updateGame(*ctx);
-        renderGame(*ctx);
-        presentGame(*ctx);
+        inputGame();
+        updateGame();
+        renderGame();
+        presentGame();
 
         resetTemporaryStorage();
     }
 
-    nvgDeleteGL2(ctx.gfx);
-    glfwDestroyWindow(ctx.window);
-    glfwTerminate();
+    uninitGame();
 
     exit(EXIT_SUCCESS);
 }

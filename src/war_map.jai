@@ -27,8 +27,8 @@ WarMapTilesetType :: enum {
 }
 
 WarMap :: struct {
-    using base: WarScene;
-    base.type = WarSceneType.Map;
+    using base: Scene;
+    // base.type = WarSceneType.Map;
 
     playing: bool;   // Indicates if the map is being played
     custom: bool;    // Indicates if the map is a custom one (not a level)
@@ -69,18 +69,18 @@ WarMap :: struct {
     messagePanel: Rect;
     saveLoadPanel: Rect;
 
-    sprite: WarSprite;
-    minimapSprite: WarSprite;
-    blackSprite: WarSprite;
+    sprite: Sprite;
+    minimapSprite: Sprite;
+    blackSprite: Sprite;
 
     tilesetType: WarMapTilesetType;
 
-    selectedEntities: List(WarEntityId);
+    selectedEntities: List(EntityId);
 
-    forest: *WarEntity;
-    wall: *WarEntity;
-    road: *WarEntity;
-    ruin: *WarEntity;
+    forest: *Entity;
+    wall: *Entity;
+    road: *Entity;
+    ruin: *Entity;
 
     editingTrees: bool;
     editingWalls: bool;
@@ -97,11 +97,11 @@ WarMap :: struct {
     hurryUp: bool;
     fowEnabled: bool;
 
-    finder: WarPathFinder;
+    finder: PathFinder;
     // uiCommand: WarUICommand;
     // flashStatus: WarFlashStatus;
     // cheatStatus: WarCheatStatus;
 
     playersCount: s32;
-    players: [MAX_PLAYERS_COUNT] WarPlayerInfo;
+    players: [MAX_PLAYERS_COUNT] PlayerInfo;
 }

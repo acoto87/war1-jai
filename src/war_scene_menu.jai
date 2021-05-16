@@ -1,68 +1,74 @@
-enterSceneMainMenu :: (ctx: *WarContext) {
-    createMainMenu(ctx);
-    createSinglePlayerMenu(ctx);
-    createLoadMenu(ctx);
-    createCustomGameMenu(ctx);
-    // createCheatsPanel(ctx);
+createSceneMainMenu :: () -> *WarMenuScene {
+    scene := createScene(WarMenuScene);
+    scene.enterSceneFn = enterSceneMainMenu;
+    return scene;
+}
 
-    createUICursor(ctx, "cursor", WarCursorType.Arrow, VEC2_ZERO);
+enterSceneMainMenu :: () {
+    createMainMenu();
+    createSinglePlayerMenu();
+    createLoadMenu();
+    createCustomGameMenu();
+    // createCheatsPanel();
 
-    if (!isDemo(ctx)) {
-        // createAudio(ctx, WAR_MUSIC_00, true);
+    createUICursor("cursor", WarCursorType.Arrow, VEC2_ZERO);
+
+    if (!isDemo()) {
+        // createAudio(WAR_MUSIC_00, true);
     }
 }
 
-createMainMenu :: (ctx: *WarContext) {
+createMainMenu :: () {
     invalidRef := invalidResourceRef();
     mediumNormalRef := imageResourceRef(239);
     mediumPressedRef := imageResourceRef(240);
 
-    uiEntity := createUIImage(ctx, "imgMenuBackground", imageResourceRef(261), VEC2_ZERO);
+    uiEntity := createUIImage("imgMenuBackground", imageResourceRef(261), VEC2_ZERO);
 
     uiEntity = createUITextButton(
-        ctx, "btnMenuSinglePlayer",
+        "btnMenuSinglePlayer",
         1, 10, "Start a new game",
         mediumNormalRef,
         mediumPressedRef,
         invalidRef,
         vec2(104, 85));
-    setUIButtonClickHandler(ctx, uiEntity, handleMenuSinglePlayer);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.S);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIButtonClickHandler(uiEntity, handleMenuSinglePlayer);
+    setUIButtonHotKey(uiEntity, Keys.S);
+    setUITextHighlight(uiEntity, 0, 1);
 
     uiEntity = createUITextButton(
-        ctx, "btnMenuLoad",
+        "btnMenuLoad",
         1, 10, "Load existing game",
         mediumNormalRef,
         mediumPressedRef,
         invalidRef,
         vec2(104, 105));
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.L);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIButtonHotKey(uiEntity, Keys.L);
+    setUITextHighlight(uiEntity, 0, 1);
 
     uiEntity = createUITextButton(
-        ctx, "btnMenuReplayIntro",
+        "btnMenuReplayIntro",
         1, 10, "Replay introduction",
         mediumNormalRef,
         mediumPressedRef,
         invalidRef,
         vec2(104, 125));
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.R);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIButtonHotKey(uiEntity, Keys.R);
+    setUITextHighlight(uiEntity, 0, 1);
 
     uiEntity = createUITextButton(
-        ctx, "btnMenuQuit",
+        "btnMenuQuit",
         1, 10, "Quit",
         mediumNormalRef,
         mediumPressedRef,
         invalidRef,
         vec2(104, 165));
-    setUIButtonClickHandler(ctx, uiEntity, handleMenuQuit);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.Q);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIButtonClickHandler(uiEntity, handleMenuQuit);
+    setUIButtonHotKey(uiEntity, Keys.Q);
+    setUITextHighlight(uiEntity, 0, 1);
 }
 
-createSinglePlayerMenu :: (ctx: *WarContext) {
+createSinglePlayerMenu :: () {
     invalidRef := invalidResourceRef();
     mediumNormalRef := imageResourceRef(239);
     mediumPressedRef := imageResourceRef(240);
@@ -70,58 +76,58 @@ createSinglePlayerMenu :: (ctx: *WarContext) {
     smallPressedRef := imageResourceRef(242);
 
     uiEntity := createUITextButton(
-        ctx, "btnSinglePlayerOrc",
+        "btnSinglePlayerOrc",
         1, 10, "Orc campaign",
         mediumNormalRef,
         mediumPressedRef,
         invalidRef,
         vec2(104, 85));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleSinglePlayerOrc);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.O);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleSinglePlayerOrc);
+    setUIButtonHotKey(uiEntity, Keys.O);
+    setUITextHighlight(uiEntity, 0, 1);
 
     uiEntity = createUITextButton(
-        ctx, "btnSinglePlayerHuman",
+        "btnSinglePlayerHuman",
         1, 10, "Human campaign",
         mediumNormalRef,
         mediumPressedRef,
         invalidRef,
         vec2(104, 105));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleSinglePlayerHuman);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.H);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleSinglePlayerHuman);
+    setUIButtonHotKey(uiEntity, Keys.H);
+    setUITextHighlight(uiEntity, 0, 1);
 
     uiEntity = createUITextButton(
-        ctx, "btnCustomGame",
+        "btnCustomGame",
         1, 10, "Custom game",
         mediumNormalRef,
         mediumPressedRef,
         invalidRef,
         vec2(104, 125));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleCustomGame);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.U);
-    setUITextHighlight(ctx, uiEntity, 1, 1);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleCustomGame);
+    setUIButtonHotKey(uiEntity, Keys.U);
+    setUITextHighlight(uiEntity, 1, 1);
 
     uiEntity = createUITextButton(
-        ctx, "btnSinglePlayerCancel",
+        "btnSinglePlayerCancel",
         1, 10, "Cancel",
         smallNormalRef,
         smallPressedRef,
         invalidRef,
         vec2(133, 165));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleSinglePlayerCancel);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.C);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleSinglePlayerCancel);
+    setUIButtonHotKey(uiEntity, Keys.C);
+    setUITextHighlight(uiEntity, 0, 1);
 }
 
-createLoadMenu :: (ctx: *WarContext) {
+createLoadMenu :: () {
 }
 
-createCustomGameMenu :: (ctx: *WarContext) {
+createCustomGameMenu :: () {
     invalidRef := invalidResourceRef();
     smallNormalRef := imageResourceRef(241);
     smallPressedRef := imageResourceRef(242);
@@ -131,282 +137,317 @@ createCustomGameMenu :: (ctx: *WarContext) {
     rightArrowPressedRef := imageResourceRef(247);
 
     uiEntity := createUIText(
-        ctx, "txtYourRaceLabel",
+        "txtYourRaceLabel",
         1, 10, "Your race:",
         vec2(40, 105));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUITextBoundings(ctx, uiEntity, vec2(100, 12));
-    setUITextHorizontalAlign(ctx, uiEntity, WarTextAlignment.Right);
-    setUITextVerticalAlign(ctx, uiEntity, WarTextAlignment.Middle);
+    setUIEntityStatus(uiEntity, false);
+    setUITextBoundings(uiEntity, vec2(100, 12));
+    setUITextHorizontalAlign(uiEntity, TextAlignment.Right);
+    setUITextVerticalAlign(uiEntity, TextAlignment.Middle);
 
     uiEntity = createUIText(
-        ctx, "txtEnemyRaceLabel",
+        "txtEnemyRaceLabel",
         1, 10, "Enemy race:",
         vec2(40, 125));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUITextBoundings(ctx, uiEntity, vec2(100, 12));
-    setUITextHorizontalAlign(ctx, uiEntity, WarTextAlignment.Right);
-    setUITextVerticalAlign(ctx, uiEntity, WarTextAlignment.Middle);
+    setUIEntityStatus(uiEntity, false);
+    setUITextBoundings(uiEntity, vec2(100, 12));
+    setUITextHorizontalAlign(uiEntity, TextAlignment.Right);
+    setUITextVerticalAlign(uiEntity, TextAlignment.Middle);
 
     uiEntity = createUIText(
-        ctx, "txtMapLabel",
+        "txtMapLabel",
         1, 10, "Map:",
         vec2(40, 145));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUITextBoundings(ctx, uiEntity, vec2(100, 12));
-    setUITextHorizontalAlign(ctx, uiEntity, WarTextAlignment.Right);
-    setUITextVerticalAlign(ctx, uiEntity, WarTextAlignment.Middle);
+    setUIEntityStatus(uiEntity, false);
+    setUITextBoundings(uiEntity, vec2(100, 12));
+    setUITextHorizontalAlign(uiEntity, TextAlignment.Right);
+    setUITextVerticalAlign(uiEntity, TextAlignment.Middle);
 
     uiEntity = createUIText(
-        ctx, "txtYourRace",
+        "txtYourRace",
         1, 10, "Human",
         vec2(180, 105));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUITextBoundings(ctx, uiEntity, vec2(50, 12));
-    setUITextHorizontalAlign(ctx, uiEntity, WarTextAlignment.Center);
-    setUITextVerticalAlign(ctx, uiEntity, WarTextAlignment.Middle);
+    setUIEntityStatus(uiEntity, false);
+    setUITextBoundings(uiEntity, vec2(50, 12));
+    setUITextHorizontalAlign(uiEntity, TextAlignment.Center);
+    setUITextVerticalAlign(uiEntity, TextAlignment.Middle);
 
     uiEntity = createUIText(
-        ctx, "txtEnemyRace",
+        "txtEnemyRace",
         1, 10, "Orc",
         vec2(180, 125));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUITextBoundings(ctx, uiEntity, vec2(50, 12));
-    setUITextHorizontalAlign(ctx, uiEntity, WarTextAlignment.Center);
-    setUITextVerticalAlign(ctx, uiEntity, WarTextAlignment.Middle);
+    setUIEntityStatus(uiEntity, false);
+    setUITextBoundings(uiEntity, vec2(50, 12));
+    setUITextHorizontalAlign(uiEntity, TextAlignment.Center);
+    setUITextVerticalAlign(uiEntity, TextAlignment.Middle);
 
     uiEntity = createUIText(
-        ctx, "txtMap",
+        "txtMap",
         1, 10, "147",
         vec2(180, 145));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUITextBoundings(ctx, uiEntity, vec2(50, 12));
-    setUITextHorizontalAlign(ctx, uiEntity, WarTextAlignment.Center);
-    setUITextVerticalAlign(ctx, uiEntity, WarTextAlignment.Middle);
+    setUIEntityStatus(uiEntity, false);
+    setUITextBoundings(uiEntity, vec2(50, 12));
+    setUITextHorizontalAlign(uiEntity, TextAlignment.Center);
+    setUITextVerticalAlign(uiEntity, TextAlignment.Middle);
 
     uiEntity = createUIImageButton(
-        ctx, "btnYourRaceLeft",
+        "btnYourRaceLeft",
         leftArrowNormalRef,
         leftArrowPressedRef,
         invalidRef,
         vec2(160, 103));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleYourRaceLeft);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleYourRaceLeft);
 
     uiEntity = createUIImageButton(
-        ctx, "btnYourRaceRight",
+        "btnYourRaceRight",
         rightArrowNormalRef,
         rightArrowPressedRef,
         invalidRef,
         vec2(235, 103));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleYourRaceRight);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleYourRaceRight);
 
     uiEntity = createUIImageButton(
-        ctx, "btnEnemyRaceLeft",
+        "btnEnemyRaceLeft",
         leftArrowNormalRef,
         leftArrowPressedRef,
         invalidRef,
         vec2(160, 123));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleEnemyRaceLeft);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleEnemyRaceLeft);
 
     uiEntity = createUIImageButton(
-        ctx, "btnEnemyRaceRight",
+        "btnEnemyRaceRight",
         rightArrowNormalRef,
         rightArrowPressedRef,
         invalidRef,
         vec2(235, 123));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleEnemyRaceRight);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleEnemyRaceRight);
 
     uiEntity = createUIImageButton(
-        ctx, "btnMapLeft",
+        "btnMapLeft",
         leftArrowNormalRef,
         leftArrowPressedRef,
         invalidRef,
         vec2(160, 143));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleMapLeft);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleMapLeft);
 
     uiEntity = createUIImageButton(
-        ctx, "btnMapRight",
+        "btnMapRight",
         rightArrowNormalRef,
         rightArrowPressedRef,
         invalidRef,
         vec2(235, 143));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleMapRight);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleMapRight);
 
     uiEntity = createUITextButton(
-        ctx, "btnCustomGameOk",
+        "btnCustomGameOk",
         1, 10, "Ok",
         smallNormalRef,
         smallPressedRef,
         invalidRef,
         vec2(100, 165));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleCustomGameOk);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.O);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleCustomGameOk);
+    setUIButtonHotKey(uiEntity, Keys.O);
+    setUITextHighlight(uiEntity, 0, 1);
 
     uiEntity = createUITextButton(
-        ctx, "btnCustomGameCancel",
+        "btnCustomGameCancel",
         1, 10, "Cancel",
         smallNormalRef,
         smallPressedRef,
         invalidRef,
         vec2(180, 165));
-    setUIEntityStatus(ctx, uiEntity, false);
-    setUIButtonClickHandler(ctx, uiEntity, handleMenuSinglePlayer);
-    setUIButtonHotKey(ctx, uiEntity, WarKeys.C);
-    setUITextHighlight(ctx, uiEntity, 0, 1);
+    setUIEntityStatus(uiEntity, false);
+    setUIButtonClickHandler(uiEntity, handleMenuSinglePlayer);
+    setUIButtonHotKey(uiEntity, Keys.C);
+    setUITextHighlight(uiEntity, 0, 1);
 }
 
-showOrHideMainMenu :: (ctx: *WarContext, status: bool) {
-    setUIEntityStatusByName(ctx, "btnMenuSinglePlayer", status);
-    setUIEntityStatusByName(ctx, "btnMenuLoad", status);
-    setUIEntityStatusByName(ctx, "btnMenuReplayIntro", status);
-    setUIEntityStatusByName(ctx, "btnMenuQuit", status);
+showOrHideMainMenu :: (status: bool) {
+    setUIEntityStatusByName("btnMenuSinglePlayer", status);
+    setUIEntityStatusByName("btnMenuLoad", status);
+    setUIEntityStatusByName("btnMenuReplayIntro", status);
+    setUIEntityStatusByName("btnMenuQuit", status);
 }
 
-showOrHideSinglePlayer :: (ctx: *WarContext, status: bool) {
-    setUIEntityStatusByName(ctx, "btnSinglePlayerOrc", status);
-    setUIEntityStatusByName(ctx, "btnSinglePlayerHuman", status);
-    setUIEntityStatusByName(ctx, "btnCustomGame", status);
-    setUIEntityStatusByName(ctx, "btnSinglePlayerCancel", status);
+showOrHideSinglePlayer :: (status: bool) {
+    setUIEntityStatusByName("btnSinglePlayerOrc", status);
+    setUIEntityStatusByName("btnSinglePlayerHuman", status);
+    setUIEntityStatusByName("btnCustomGame", status);
+    setUIEntityStatusByName("btnSinglePlayerCancel", status);
 }
 
-showOrHideCustomGame :: (ctx: *WarContext, status: bool) {
+showOrHideCustomGame :: (status: bool) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
 
-    setUIEntityStatusByName(ctx, "txtYourRaceLabel", status);
-    setUIEntityStatusByName(ctx, "txtEnemyRaceLabel", status);
-    setUIEntityStatusByName(ctx, "txtMapLabel", status);
-    setUIEntityStatusByName(ctx, "txtYourRace", status);
-    setUIEntityStatusByName(ctx, "txtEnemyRace", status);
-    setUIEntityStatusByName(ctx, "txtMap", status);
-    setUIEntityStatusByName(ctx, "btnYourRaceLeft", status);
-    setUIEntityStatusByName(ctx, "btnYourRaceRight", status);
-    setUIEntityStatusByName(ctx, "btnEnemyRaceLeft", status);
-    setUIEntityStatusByName(ctx, "btnEnemyRaceRight", status);
-    setUIEntityStatusByName(ctx, "btnMapLeft", status);
-    setUIEntityStatusByName(ctx, "btnMapRight", status);
-    setUIEntityStatusByName(ctx, "btnCustomGameOk", status);
-    setUIEntityStatusByName(ctx, "btnCustomGameCancel", status);
+    setUIEntityStatusByName("txtYourRaceLabel", status);
+    setUIEntityStatusByName("txtEnemyRaceLabel", status);
+    setUIEntityStatusByName("txtMapLabel", status);
+    setUIEntityStatusByName("txtYourRace", status);
+    setUIEntityStatusByName("txtEnemyRace", status);
+    setUIEntityStatusByName("txtMap", status);
+    setUIEntityStatusByName("btnYourRaceLeft", status);
+    setUIEntityStatusByName("btnYourRaceRight", status);
+    setUIEntityStatusByName("btnEnemyRaceLeft", status);
+    setUIEntityStatusByName("btnEnemyRaceRight", status);
+    setUIEntityStatusByName("btnMapLeft", status);
+    setUIEntityStatusByName("btnMapRight", status);
+    setUIEntityStatusByName("btnCustomGameOk", status);
+    setUIEntityStatusByName("btnCustomGameCancel", status);
 
     if (status) {
         scene.yourRace = WarRace.Humans;
         scene.enemyRace = WarRace.Orcs;
         scene.customMap = 147;
 
-        setUIRaceValueByName(ctx, "txtYourRace", scene.yourRace);
-        setUIRaceValueByName(ctx, "txtEnemyRace", scene.enemyRace);
-        setCustomMapValueByName(ctx, "txtMap", scene.customMap);
+        setUIRaceValueByName("txtYourRace", scene.yourRace);
+        setUIRaceValueByName("txtEnemyRace", scene.enemyRace);
+        setCustomMapValueByName("txtMap", scene.customMap);
     }
 }
 
 // menu button handlers
-handleMenuSinglePlayer :: (ctx: *WarContext, entity: *WarEntity) {
-    showOrHideMainMenu(ctx, false);
-    showOrHideSinglePlayer(ctx, true);
-    showOrHideCustomGame(ctx, false);
+handleMenuSinglePlayer :: (entity: *Entity) {
+    showOrHideMainMenu(false);
+    showOrHideSinglePlayer(true);
+    showOrHideCustomGame(false);
 }
 
-handleMenuQuit :: (ctx: *WarContext, entity: *WarEntity) {
+handleMenuQuit :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     glfwSetWindowShouldClose(ctx.window, 1);
 }
 
-handleSinglePlayerOrc :: (ctx: *WarContext, entity: *WarEntity) {
-    scene := createScene(ctx, WarBriefingScene);
+handleSinglePlayerOrc :: (entity: *Entity) {
+    scene := createScene(WarBriefingScene);
     scene.race = WarRace.Orcs;
     scene.mapType = WarCampaignMapType.Orcs01;
-    setNextScene(ctx, scene, 1.0);
+    setNextScene(scene, 1.0);
 }
 
-handleSinglePlayerHuman :: (ctx: *WarContext, entity: *WarEntity) {
-    scene := createScene(ctx, WarBriefingScene);
+handleSinglePlayerHuman :: (entity: *Entity) {
+    scene := createScene(WarBriefingScene);
     scene.race = WarRace.Humans;
     scene.mapType = WarCampaignMapType.Humans01;
-    setNextScene(ctx, scene, 1.0);
+    setNextScene(scene, 1.0);
 }
 
-handleCustomGame :: (ctx: *WarContext, entity: *WarEntity) {
-    showOrHideMainMenu(ctx, false);
-    showOrHideSinglePlayer(ctx, false);
-    showOrHideCustomGame(ctx, true);
+handleCustomGame :: (entity: *Entity) {
+    showOrHideMainMenu(false);
+    showOrHideSinglePlayer(false);
+    showOrHideCustomGame(true);
 }
 
-handleSinglePlayerCancel :: (ctx: *WarContext, entity: *WarEntity) {
-    showOrHideMainMenu(ctx, true);
-    showOrHideSinglePlayer(ctx, false);
-    showOrHideCustomGame(ctx, false);
+handleSinglePlayerCancel :: (entity: *Entity) {
+    showOrHideMainMenu(true);
+    showOrHideSinglePlayer(false);
+    showOrHideCustomGame(false);
 }
 
-handleYourRaceLeft :: (ctx: *WarContext, entity: *WarEntity) {
+handleYourRaceLeft :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
 
     if (scene.yourRace > WarRace.Neutral) {
         scene.yourRace = cast(WarRace) (cast(s32) scene.yourRace - 1);
-        setUIRaceValueByName(ctx, "txtYourRace", scene.yourRace);
+        setUIRaceValueByName("txtYourRace", scene.yourRace);
     }
 }
 
-handleYourRaceRight :: (ctx: *WarContext, entity: *WarEntity) {
+handleYourRaceRight :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
 
     if (scene.yourRace < WarRace.Orcs) {
         scene.yourRace = cast(WarRace) (cast(s32) scene.yourRace + 1);
-        setUIRaceValueByName(ctx, "txtYourRace", scene.yourRace);
+        setUIRaceValueByName("txtYourRace", scene.yourRace);
     }
 }
 
-handleEnemyRaceLeft :: (ctx: *WarContext, entity: *WarEntity) {
+handleEnemyRaceLeft :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
 
     if (scene.enemyRace > WarRace.Neutral) {
         scene.enemyRace = cast(WarRace) (cast(s32) scene.enemyRace - 1);
-        setUIRaceValueByName(ctx, "txtEnemyRace", scene.enemyRace);
+        setUIRaceValueByName("txtEnemyRace", scene.enemyRace);
     }
 }
 
-handleEnemyRaceRight :: (ctx: *WarContext, entity: *WarEntity) {
+handleEnemyRaceRight :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
 
     if (scene.enemyRace < WarRace.Orcs) {
         scene.enemyRace = cast(WarRace) (cast(s32) scene.enemyRace + 1);
-        setUIRaceValueByName(ctx, "txtEnemyRace", scene.enemyRace);
+        setUIRaceValueByName("txtEnemyRace", scene.enemyRace);
     }
 }
 
-handleMapLeft :: (ctx: *WarContext, entity: *WarEntity) {
+handleMapLeft :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
 
     if (scene.customMap > 147) {
         scene.customMap -= 1;
-        setCustomMapValueByName(ctx, "txtMap", scene.customMap);
+        setCustomMapValueByName("txtMap", scene.customMap);
     }
 }
 
-handleMapRight :: (ctx: *WarContext, entity: *WarEntity) {
+handleMapRight :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
 
     if (scene.customMap < 188) {
         scene.customMap += 1;
-        setCustomMapValueByName(ctx, "txtMap", scene.customMap);
+        setCustomMapValueByName("txtMap", scene.customMap);
     }
 }
 
-handleCustomGameOk :: (ctx: *WarContext, entity: *WarEntity) {
-    scene := cast(*WarMenuScene) ctx.scene;
+handleCustomGameOk :: (entity: *Entity) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
 
-    // map := createCustomMap(ctx, scene.customMap, scene.yourRace, scene.enemyRace);
-    // setNextMap(ctx, map, 1.0);
+    scene := cast(*WarMenuScene) ctx.scene;
+    assert(scene != null);
+
+    // map := createCustomMap(scene.customMap, scene.yourRace, scene.enemyRace);
+    // setNextMap(map, 1.0);
 }
 
 #scope_file
 
-setUIRaceValueByName :: (ctx: *WarContext, name: string, value: WarRace) {
+setUIRaceValueByName :: (name: string, value: WarRace) {
     getCustomGameRaceStr :: (race: WarRace) -> string {
         if race ==  {
             case WarRace.Neutral; return "Random";
@@ -420,15 +461,15 @@ setUIRaceValueByName :: (ctx: *WarContext, name: string, value: WarRace) {
         }
     }
 
-    entity := findUIEntity(ctx, name);
+    entity := findUIEntity(name);
     if (entity != null) {
         raceStr := getCustomGameRaceStr(value);
-        setUIText(ctx, entity, raceStr);
-        setUITextHighlight(ctx,entity, NO_HIGHLIGHT, 0);
+        setUIText(entity, raceStr);
+        setUITextHighlight(entity, NO_HIGHLIGHT, 0);
     }
 }
 
-setCustomMapValueByName :: (ctx: *WarContext, name: string, value: s32) {
+setCustomMapValueByName :: (name: string, value: s32) {
     getCustomMapStr :: (value: s32) -> string {
         if value == {
             case 147; return "Forest 1";
@@ -482,10 +523,10 @@ setCustomMapValueByName :: (ctx: *WarContext, name: string, value: s32) {
         }
     }
 
-    entity := findUIEntity(ctx, name);
+    entity := findUIEntity(name);
     if (entity != null) {
         customMapStr := getCustomMapStr(value);
-        setUIText(ctx, entity, customMapStr);
-        setUITextHighlight(ctx, entity, NO_HIGHLIGHT, 0);
+        setUIText(entity, customMapStr);
+        setUITextHighlight(entity, NO_HIGHLIGHT, 0);
     }
 }

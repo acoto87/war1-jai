@@ -32,7 +32,7 @@ WarFile :: struct {
     resources: [MAX_RESOURCES_COUNT] WarRawResource;
 }
 
-loadWarFile :: (ctx: *WarContext, filePath: string) -> *WarFile {
+loadWarFile :: (filePath: string) -> *WarFile {
     file := fopen(toCString(filePath, tempAllocator), "rb");
     if (file == null) {
         print("Couldn't process the DATA.WAR file. The file doesn't exists.\n");

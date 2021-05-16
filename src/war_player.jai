@@ -1,5 +1,5 @@
-WarAIInitFunc :: #type (ctx: *WarContext, aiPlayer: *WarPlayerInfo);
-WarAINextCommandFunc :: #type (ctx: *WarContext, aiPlayer: *WarPlayerInfo);
+WarAIInitFunc :: #type (aiPlayer: *WarPlayerInfo);
+WarAINextCommandFunc :: #type (aiPlayer: *WarPlayerInfo);
 
 WarPlayerInfo :: struct {
     index: u8;

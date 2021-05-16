@@ -1,7 +1,6 @@
 MAX_RESOURCES_COUNT                 : s32 : 583;
 MAX_TEXTURES_COUNT                  : s32 : 583;
 MAX_ENTITIES_COUNT                  : s32 : 200;
-MAX_SPRITE_FRAME_COUNT              : s32 : 100;
 MAX_CONSTRUCTS_COUNT                : s32 : 200;
 MAX_CUSTOM_MAP_GOLDMINES_COUNT      : s32 : 10;
 MAX_CUSTOM_MAP_CONFIGURATIONS_COUNT : s32 : 10;
@@ -54,9 +53,6 @@ MAX_PLAYERS_COUNT                   : s32 : 5;
 MAX_FEATURES_COUNT                  : s32 : 22;
 MAX_UPGRADES_COUNT                  : s32 : 10;
 MAX_TILES_COUNT                     : s32 : 1024;
-
-FRAMES_PER_SECONDS :: 60;
-SECONDS_PER_FRAME :: (1.0/FRAMES_PER_SECONDS);
 
 MOVE_EPSILON :: 0.5;
 MOVE_WAIT_INTENTS :: 2;

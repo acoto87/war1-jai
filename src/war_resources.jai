@@ -45,7 +45,7 @@ WarResourceSprite :: struct {
     framesCount: u16;
     frameWidth: u8;
     frameHeight: u8;
-    frames: [MAX_SPRITE_FRAME_COUNT] WarSpriteFrame;
+    frames: [MAX_SPRITE_FRAME_COUNT] SpriteFrame;
 }
 
 WarResourceLevelInfo :: struct {
@@ -155,7 +155,10 @@ WarCustomMapConfiguration :: struct {
     startEntities: [MAX_CUSTOM_MAP_ENTITIES_COUNT] WarLevelUnit;
 }
 
-getOrCreateResource :: ($resourceType: Type, ctx: *WarContext, index: u32) -> *resourceType {
+getOrCreateResource :: ($resourceType: Type, index: u32) -> *resourceType {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     assert(index >= 0 && index < cast(u32) MAX_RESOURCES_COUNT);
     if (ctx.resources[index] == null) {
         logInfo("Creating resource: %\n", index);
@@ -164,18 +167,18 @@ getOrCreateResource :: ($resourceType: Type, ctx: *WarContext, index: u32) -> *r
     return cast(*resourceType) ctx.resources[index];
 }
 
-getPalette :: (ctx: *WarContext, palette1Index: u32, palette2Index: u32, paletteData: [] u8) {
+getPalette :: (palette1Index: u32, palette2Index: u32, paletteData: [] u8) {
     arrayClear(paletteData);
 
     if (palette1Index) {
-        palette1 := getOrCreateResource(WarResourcePalette, ctx, palette1Index);
+        palette1 := getOrCreateResource(WarResourcePalette, palette1Index);
         arrayCopy(palette1.colors, paletteData);
     }
 
     // probably only the palettes 191, 194, 197 need this to use a second palette for the background
     // for now leave it whenever there is specified a second palette on the entry
     if (palette2Index) {
-        palette2 := getOrCreateResource(WarResourcePalette, ctx, palette2Index);
+        palette2 := getOrCreateResource(WarResourcePalette, palette2Index);
 
         for i : range(s32, 0, 128) {
             if (paletteData[i * 3 + 0] == 252 &&
@@ -201,7 +204,10 @@ getPalette :: (ctx: *WarContext, palette1Index: u32, palette2Index: u32, palette
     }
 }
 
-loadPaletteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadPaletteResource :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
@@ -213,7 +219,7 @@ loadPaletteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
         memorySet(rawResource.data + rawResource.length, 0, cast(u32) PALETTE_LENGTH - rawResource.length);
     }
 
-    resource := getOrCreateResource(WarResourcePalette, ctx, entry.index);
+    resource := getOrCreateResource(WarResourcePalette, entry.index);
     resource.type = WarResourceType.Palette;
 
     for i : range(s32, 0, PALETTE_LENGTH) {
@@ -285,7 +291,10 @@ loadPaletteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 }
 
-loadImageResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadImageResource :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
@@ -293,7 +302,7 @@ loadImageResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 
     paletteData: [PALETTE_LENGTH] u8;
-    getPalette(ctx, entry.param1, entry.param2, paletteData);
+    getPalette(entry.param1, entry.param2, paletteData);
 
     width := memoryRead(u16, rawResource.data, 0);
     height := memoryRead(u16, rawResource.data, 2);
@@ -316,14 +325,17 @@ loadImageResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
         }
     }
 
-    resource := getOrCreateResource(WarResourceImage, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceImage, entry.index);
     resource.type = WarResourceType.Image;
     resource.width = width;
     resource.height = height;
     resource.pixels = pixels;
 }
 
-loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadSpriteResource :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
@@ -331,13 +343,13 @@ loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 
     paletteData: [PALETTE_LENGTH] u8;
-    getPalette(ctx, entry.param1, entry.param2, paletteData);
+    getPalette(entry.param1, entry.param2, paletteData);
 
     framesCount := memoryRead(u16, rawResource.data, 0);
     frameWidth := memoryRead(u8, rawResource.data, 2);
     frameHeight := memoryRead(u8, rawResource.data, 3);
 
-    resource := getOrCreateResource(WarResourceSprite, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceSprite, entry.index);
     for i : range(s32, 0, cast(s32) framesCount) {
         frame := *resource.frames[i];
         frame.dx = memoryRead(u8, rawResource.data, 4 + i * 8 + 0);
@@ -395,7 +407,10 @@ loadSpriteResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
     resource.frameHeight = frameHeight;
 }
 
-loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadLevelInfo :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
@@ -407,7 +422,7 @@ loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
 
     allowId := memoryRead(u32, rawResource.data, 0);
 
-    resource := getOrCreateResource(WarResourceLevelInfo, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceLevelInfo, entry.index);
     resource.type = WarResourceType.LevelInfo;
     resource.allowId = allowId;
     resource.allowedHumanUnits = true;
@@ -600,28 +615,34 @@ loadLevelInfo :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 }
 
-loadLevelVisual :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadLevelVisual :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
         return;
     }
 
-    resource := getOrCreateResource(WarResourceLevelVisual, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceLevelVisual, entry.index);
     resource.type = WarResourceType.LevelVisual;
     for i : range(s32, 0, MAP_TILES_WIDTH * MAP_TILES_HEIGHT) {
         resource.data[i] = memoryRead(u16, rawResource.data, i * 2);
     }
 }
 
-loadLevelPassable :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadLevelPassable :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
         return;
     }
 
-    resource := getOrCreateResource(WarResourceLevelPassable, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceLevelPassable, entry.index);
     resource.type = WarResourceType.LeveLPassable;
     for i : range(s32, 0, MAP_TILES_WIDTH * MAP_TILES_HEIGHT) {
         // 128 -> wood, 64 -> water, 16 -> bridge, 0 -> empty
@@ -629,14 +650,17 @@ loadLevelPassable :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 }
 
-loadTileset :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadTileset :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
         return;
     }
 
-    tiles := getOrCreateResource(WarResourceTiles, ctx, entry.param1);
+    tiles := getOrCreateResource(WarResourceTiles, entry.param1);
 
     data := alloc(u8, TILESET_WIDTH * TILESET_HEIGHT);
     tilesCount := cast(s32) rawResource.length / 8;
@@ -667,9 +691,9 @@ loadTileset :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 
     paletteData: [PALETTE_LENGTH] u8;
-    getPalette(ctx, tiles.palette1, tiles.palette2, paletteData);
+    getPalette(tiles.palette1, tiles.palette2, paletteData);
 
-    resource := getOrCreateResource(WarResourceTileset, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceTileset, entry.index);
     resource.type = WarResourceType.Tileset;
     resource.tilesCount = rawResource.length / 8;
 
@@ -688,7 +712,10 @@ loadTileset :: (ctx: *WarContext, entry: *DatabaseEntry) {
     // }
 }
 
-loadTiles :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadTiles :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
@@ -696,9 +723,9 @@ loadTiles :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 
     paletteData: [PALETTE_LENGTH] u8;
-    getPalette(ctx, entry.param1, entry.param2, paletteData);
+    getPalette(entry.param1, entry.param2, paletteData);
 
-    resource := getOrCreateResource(WarResourceTiles, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceTiles, entry.index);
     resource.type = WarResourceType.Tiles;
     resource.palette1 = entry.param1;
     resource.palette2 = entry.param2;
@@ -706,158 +733,172 @@ loadTiles :: (ctx: *WarContext, entry: *DatabaseEntry) {
     memoryCopy(resource.data, rawResource.data, rawResource.length);
 }
 
-loadText :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadText :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
         return;
     }
 
-    resource := getOrCreateResource(WarResourceText, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceText, entry.index);
     resource.type = WarResourceType.Text;
     resource.length = rawResource.length;
     resource.text = alloc(u8, resource.length);
     memoryCopy(resource.text, rawResource.data, resource.length);
 }
 
-loadXmi :: (ctx: *WarContext, entry: *DatabaseEntry) {
-    rawResource := ctx.warFile.resources[entry.index];
-    if (rawResource.placeholder) {
-        logInfo("Placeholder resource found at: %d\n", entry.index);
-        return;
-    }
+// loadXmi :: (entry: *DatabaseEntry) {
+//    ctx := cast(*WarContext) context.gameContext;
+//    assert(ctx != null);
 
-    xmiData := rawResource.data;
-    xmiLength := rawResource.length;
+//     rawResource := ctx.warFile.resources[entry.index];
+//     if (rawResource.placeholder) {
+//         logInfo("Placeholder resource found at: %d\n", entry.index);
+//         return;
+//     }
 
-    midLength: u32;
-    midData := transcodeXmiToMid(xmiData, xmiLength, *midLength);
-    if (midData == null) {
-        logError("Can't convert XMI file of resource %d\n", entry.index);
-        return;
-    }
+//     xmiData := rawResource.data;
+//     xmiLength := rawResource.length;
 
-    resource := getOrCreateResource(WarResourceAudio, ctx, entry.index);
-    resource.type = WarResourceType.Xmid;
-    resource.data = midData;
-    resource.length = cast(s32) midLength;
-}
+//     midLength: u32;
+//     midData := transcodeXmiToMid(xmiData, xmiLength, *midLength);
+//     if (midData == null) {
+//         logError("Can't convert XMI file of resource %d\n", entry.index);
+//         return;
+//     }
 
-loadWave :: (ctx: *WarContext, entry: *DatabaseEntry) {
-    rawResource := ctx.warFile.resources[entry.index];
-    if (rawResource.placeholder) {
-        logInfo("Placeholder resource found at: %d\n", entry.index);
-        return;
-    }
+//     resource := getOrCreateResource(WarResourceAudio, entry.index);
+//     resource.type = WarResourceType.Xmid;
+//     resource.data = midData;
+//     resource.length = cast(s32) midLength;
+// }
 
-    bufInput: MemoryBuffer;
-    mbInitFromMemory(*bufInput, rawResource.data, rawResource.length);
+// loadWave :: (entry: *DatabaseEntry) {
+//     ctx := cast(*WarContext) context.gameContext;
+//     assert(ctx != null);
 
-    // skip "RIFF"
-    check(#code mbSkip(*bufInput, 4));
-    // skip file length, always 36 + dataLength
-    check(#code mbSkip(*bufInput, size_of(s32)));
-    // skip "WAVE"
-    check(#code mbSkip(*bufInput, 4));
-    // skip "fmt "
-    check(#code mbSkip(*bufInput, 4));
-    // skip fmt length, always 10
-    check(#code mbSkip(*bufInput, size_of(s32)));
-    // skip uncompressed, always 1
-    check(#code mbSkip(*bufInput, size_of(s16)));
-    // skip channel count, always 1
-    check(#code mbSkip(*bufInput, size_of(s16)));
-    // skip sample rate, always 11025
-    check(#code mbSkip(*bufInput, size_of(s32)));
-    // skip byte rate, always 11025
-    check(#code mbSkip(*bufInput, size_of(s32)));
-    // skip block align, always 1
-    check(#code mbSkip(*bufInput, size_of(s16)));
-    // skip bits per sample, always 8
-    check(#code mbSkip(*bufInput, size_of(s16)));
-    // skip "data"
-    check(#code mbSkip(*bufInput, 4));
+//     rawResource := ctx.warFile.resources[entry.index];
+//     if (rawResource.placeholder) {
+//         logInfo("Placeholder resource found at: %d\n", entry.index);
+//         return;
+//     }
 
-    dataLength: s32;
-    check(#code mbReadInt32LE(*bufInput, *dataLength));
-    assert(dataLength > 0);
+//     bufInput: MemoryBuffer;
+//     mbInitFromMemory(*bufInput, rawResource.data, rawResource.length);
 
-    data := alloc(u8, dataLength);
-    defer free(data);
+//     // skip "RIFF"
+//     check(#code mbSkip(*bufInput, 4));
+//     // skip file length, always 36 + dataLength
+//     check(#code mbSkip(*bufInput, size_of(s32)));
+//     // skip "WAVE"
+//     check(#code mbSkip(*bufInput, 4));
+//     // skip "fmt "
+//     check(#code mbSkip(*bufInput, 4));
+//     // skip fmt length, always 10
+//     check(#code mbSkip(*bufInput, size_of(s32)));
+//     // skip uncompressed, always 1
+//     check(#code mbSkip(*bufInput, size_of(s16)));
+//     // skip channel count, always 1
+//     check(#code mbSkip(*bufInput, size_of(s16)));
+//     // skip sample rate, always 11025
+//     check(#code mbSkip(*bufInput, size_of(s32)));
+//     // skip byte rate, always 11025
+//     check(#code mbSkip(*bufInput, size_of(s32)));
+//     // skip block align, always 1
+//     check(#code mbSkip(*bufInput, size_of(s16)));
+//     // skip bits per sample, always 8
+//     check(#code mbSkip(*bufInput, size_of(s16)));
+//     // skip "data"
+//     check(#code mbSkip(*bufInput, 4));
 
-    check(#code mbReadBytes(*bufInput, data, dataLength));
+//     dataLength: s32;
+//     check(#code mbReadInt32LE(*bufInput, *dataLength));
+//     assert(dataLength > 0);
 
-    // this data is at 11025khz, and for playing it back I needed at 44100khz
-    // so I need to upsampling it here by a factor of 4
-    newData := changeSampleRate(data, dataLength, 4);
-    newDataLength: s32 = dataLength * 4;
+//     data := alloc(u8, dataLength);
+//     defer free(data);
 
-    resource := getOrCreateResource(WarResourceAudio, ctx, entry.index);
-    resource.type = WarResourceType.Wave;
-    resource.data = newData;
-    resource.length = newDataLength;
-}
+//     check(#code mbReadBytes(*bufInput, data, dataLength));
 
-loadVoc :: (ctx: *WarContext, entry: *DatabaseEntry) {
-    rawResource := ctx.warFile.resources[entry.index];
-    if (rawResource.placeholder) {
-        logInfo("Placeholder resource found at: %d\n", entry.index);
-        return;
-    }
+//     // this data is at 11025khz, and for playing it back I needed at 44100khz
+//     // so I need to upsampling it here by a factor of 4
+//     newData := changeSampleRate(data, dataLength, 4);
+//     newDataLength: s32 = dataLength * 4;
 
-    bufInput: MemoryBuffer;
-    mbInitFromMemory(*bufInput, rawResource.data, rawResource.length);
+//     resource := getOrCreateResource(WarResourceAudio, entry.index);
+//     resource.type = WarResourceType.Wave;
+//     resource.data = newData;
+//     resource.length = newDataLength;
+// }
 
-    vocHeader: [19] u8;
-    check(#code mbReadBytes(*bufInput, vocHeader.data, vocHeader.count));
-    if (strncmp(vocHeader.data, "Creative Voice File", vocHeader.count) != 0) {
-        logError("Failed to load VOC resource: %\n", entry.index);
-        return;
-    }
+// loadVoc :: (entry: *DatabaseEntry) {
+//     ctx := cast(*WarContext) context.gameContext;
+//     assert(ctx != null);
+//     rawResource := ctx.warFile.resources[entry.index];
+//     if (rawResource.placeholder) {
+//         logInfo("Placeholder resource found at: %d\n", entry.index);
+//         return;
+//     }
 
-    // skip 0x1A
-    check(#code mbSkip(*bufInput, 1));
+//     bufInput: MemoryBuffer;
+//     mbInitFromMemory(*bufInput, rawResource.data, rawResource.length);
 
-    // skip offset to data, always 26
-    check(#code mbSkip(*bufInput, 2));
+//     vocHeader: [19] u8;
+//     check(#code mbReadBytes(*bufInput, vocHeader.data, vocHeader.count));
+//     if (strncmp(vocHeader.data, "Creative Voice File", vocHeader.count) != 0) {
+//         logError("Failed to load VOC resource: %\n", entry.index);
+//         return;
+//     }
 
-    // skip version, always 266
-    check(#code mbSkip(*bufInput, 2));
-    // skip 2's comp of version, always 4393
-    check(#code mbSkip(*bufInput, 2));
+//     // skip 0x1A
+//     check(#code mbSkip(*bufInput, 1));
 
-    type: u8;
-    check(#code mbRead(*bufInput, *type));
-    assert(type == 1);
+//     // skip offset to data, always 26
+//     check(#code mbSkip(*bufInput, 2));
 
-    dataLength: s32;
-    check(#code mbReadInt24LE(*bufInput, *dataLength));
-    assert(dataLength > 0);
+//     // skip version, always 266
+//     check(#code mbSkip(*bufInput, 2));
+//     // skip 2's comp of version, always 4393
+//     check(#code mbSkip(*bufInput, 2));
 
-    // the length of the data is this value - 2
-    // for the next two skipped bytes
-    dataLength -= 2;
+//     type: u8;
+//     check(#code mbRead(*bufInput, *type));
+//     assert(type == 1);
 
-    // skip sample rate and compression type
-    check(#code mbSkip(*bufInput, 2));
+//     dataLength: s32;
+//     check(#code mbReadInt24LE(*bufInput, *dataLength));
+//     assert(dataLength > 0);
 
-    data := alloc(u8, dataLength);
-    defer free(data);
+//     // the length of the data is this value - 2
+//     // for the next two skipped bytes
+//     dataLength -= 2;
 
-    check(#code mbReadBytes(*bufInput, data, dataLength));
+//     // skip sample rate and compression type
+//     check(#code mbSkip(*bufInput, 2));
 
-    // this data is at 11025khz, and for playing it back I needed at 44100khz
-    // so I need to upsampling it here by a factor of 4
-    newData := changeSampleRate(data, dataLength, 4);
-    newDataLength: s32 = dataLength * 4;
+//     data := alloc(u8, dataLength);
+//     defer free(data);
 
-    resource := getOrCreateResource(WarResourceAudio, ctx, entry.index);
-    resource.type = WarResourceType.Voc;
-    resource.data = newData;
-    resource.length = newDataLength;
-}
+//     check(#code mbReadBytes(*bufInput, data, dataLength));
 
-loadCursor :: (ctx: *WarContext, entry: *DatabaseEntry) {
+//     // this data is at 11025khz, and for playing it back I needed at 44100khz
+//     // so I need to upsampling it here by a factor of 4
+//     newData := changeSampleRate(data, dataLength, 4);
+//     newDataLength: s32 = dataLength * 4;
+
+//     resource := getOrCreateResource(WarResourceAudio, entry.index);
+//     resource.type = WarResourceType.Voc;
+//     resource.data = newData;
+//     resource.length = newDataLength;
+// }
+
+loadCursor :: (entry: *DatabaseEntry) {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     rawResource := ctx.warFile.resources[entry.index];
     if (rawResource.placeholder) {
         logInfo("Placeholder resource found at: %d\n", entry.index);
@@ -865,7 +906,7 @@ loadCursor :: (ctx: *WarContext, entry: *DatabaseEntry) {
     }
 
     paletteData: [PALETTE_LENGTH] u8;
-    getPalette(ctx, entry.param1, entry.param2, paletteData);
+    getPalette(entry.param1, entry.param2, paletteData);
 
     hotx := memoryRead(u16, rawResource.data, 0);
     hoty := memoryRead(u16, rawResource.data, 2);
@@ -890,7 +931,7 @@ loadCursor :: (ctx: *WarContext, entry: *DatabaseEntry) {
         }
     }
 
-    resource := getOrCreateResource(WarResourceCursor, ctx, entry.index);
+    resource := getOrCreateResource(WarResourceCursor, entry.index);
     resource.type = WarResourceType.Cursor;
     resource.hotx = hotx;
     resource.hoty = hoty;
@@ -899,21 +940,21 @@ loadCursor :: (ctx: *WarContext, entry: *DatabaseEntry) {
     resource.pixels = pixels;
 }
 
-loadResource :: (ctx: *WarContext, entry: *DatabaseEntry) {
+loadResource :: (entry: *DatabaseEntry) {
     if entry.type == {
-        case DatabaseEntryType.Palette;         loadPaletteResource(ctx, entry);
-        case DatabaseEntryType.Image;           loadImageResource(ctx, entry);
-        case DatabaseEntryType.Sprite;          loadSpriteResource(ctx, entry);
-        case DatabaseEntryType.LevelInfo;       loadLevelInfo(ctx, entry);
-        case DatabaseEntryType.LevelVisual;     loadLevelVisual(ctx, entry);
-        case DatabaseEntryType.LeveLPassable;   loadLevelPassable(ctx, entry);
-        case DatabaseEntryType.Tileset;         loadTileset(ctx, entry);
-        case DatabaseEntryType.Tiles;           loadTiles(ctx, entry);
-        case DatabaseEntryType.Text;            loadText(ctx, entry);
-        case DatabaseEntryType.Xmid;            loadXmi(ctx, entry);
-        case DatabaseEntryType.Wave;            loadWave(ctx, entry);
-        case DatabaseEntryType.Voc;             loadVoc(ctx, entry);
-        case DatabaseEntryType.Cursor;          loadCursor(ctx, entry);
+        case DatabaseEntryType.Palette;         loadPaletteResource(entry);
+        case DatabaseEntryType.Image;           loadImageResource(entry);
+        case DatabaseEntryType.Sprite;          loadSpriteResource(entry);
+        case DatabaseEntryType.LevelInfo;       loadLevelInfo(entry);
+        case DatabaseEntryType.LevelVisual;     loadLevelVisual(entry);
+        case DatabaseEntryType.LeveLPassable;   loadLevelPassable(entry);
+        case DatabaseEntryType.Tileset;         loadTileset(entry);
+        case DatabaseEntryType.Tiles;           loadTiles(entry);
+        case DatabaseEntryType.Text;            loadText(entry);
+        // case DatabaseEntryType.Xmid;            loadXmi(entry);
+        // case DatabaseEntryType.Wave;            loadWave(entry);
+        // case DatabaseEntryType.Voc;             loadVoc(entry);
+        case DatabaseEntryType.Cursor;          loadCursor(entry);
         case; logInfo("DB entries of type % aren't handled yet.\n", entry.type);
     }
 }
