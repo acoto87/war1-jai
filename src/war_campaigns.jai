@@ -35,7 +35,7 @@ WarCampaignMapData :: struct {
     briefingDuration: f32;
 }
 
-WarCheckObjectivesFunc :: #type () -> WarLevelResult;
+WarCheckObjectivesFunc :: #type () -> LevelResult;
 
 getCampaignData :: (type: WarCampaignMapType) -> WarCampaignMapData {
     index := 0;
@@ -47,7 +47,7 @@ getCampaignData :: (type: WarCampaignMapType) -> WarCampaignMapData {
     return campaignsData[index];
 }
 
-checkMap01Objectives :: () -> WarLevelResult {
+checkMap01Objectives :: () -> LevelResult {
     // WarMap* map = context->map;
     // WarPlayerInfo* player = &map->players[0];
 
@@ -65,10 +65,10 @@ checkMap01Objectives :: () -> WarLevelResult {
     //     return WAR_LEVEL_RESULT_LOSE;
     // }
 
-    return WarLevelResult.None;
+    return LevelResult.None;
 }
 
-checkMap02Objectives :: () -> WarLevelResult {
+checkMap02Objectives :: () -> LevelResult {
     // WarMap* map = context->map;
     // WarPlayerInfo* player = &map->players[0];
     // WarPlayerInfo* enemy = &map->players[1];
@@ -83,10 +83,10 @@ checkMap02Objectives :: () -> WarLevelResult {
     //     return WAR_LEVEL_RESULT_LOSE;
     // }
 
-    return WarLevelResult.None;
+    return LevelResult.None;
 }
 
-checkCustomMapObjectives :: () -> WarLevelResult {
+checkCustomMapObjectives :: () -> LevelResult {
     // WarMap* map = context->map;
     // WarPlayerInfo* player = &map->players[0];
     // WarPlayerInfo* enemy = &map->players[1];
@@ -101,7 +101,7 @@ checkCustomMapObjectives :: () -> WarLevelResult {
     //     return WAR_LEVEL_RESULT_LOSE;
     // }
 
-    return WarLevelResult.None;
+    return LevelResult.None;
 }
 
 #scope_file

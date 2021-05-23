@@ -49,7 +49,6 @@ TILESET_HEIGHT                      : s32 : 256;
 TILESET_TILES_PER_ROW               : s32 : TILESET_WIDTH / MEGA_TILE_WIDTH;
 
 MAX_OBJECTIVES_LENGTH               : s32 : 512;
-MAX_PLAYERS_COUNT                   : s32 : 5;
 MAX_FEATURES_COUNT                  : s32 : 22;
 MAX_UPGRADES_COUNT                  : s32 : 10;
 MAX_TILES_COUNT                     : s32 : 1024;

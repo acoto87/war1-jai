@@ -1,7 +1,7 @@
-createAnimationFromResourceIndex :: (name: string,
-                                     spriteResourceRef: WarSpriteResourceRef,
-                                     frameDelay: f32,
-                                     loop: bool) -> *SpriteAnimation
+createAnimationFromResourceRef :: (name: string,
+                                   spriteResourceRef: WarSpriteResourceRef,
+                                   frameDelay: f32,
+                                   loop: bool) -> *SpriteAnimation
 {
     sprite := createSpriteFromResourceRef(spriteResourceRef);
     return createAnimation(name, sprite, frameDelay, loop);

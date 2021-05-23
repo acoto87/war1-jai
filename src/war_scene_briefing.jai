@@ -1,5 +1,7 @@
-createSceneBriefing :: () -> *WarBriefingScene {
+createSceneBriefing :: (race: WarRace, mapType: WarCampaignMapType) -> *WarBriefingScene {
     scene := createScene(WarBriefingScene);
+    scene.race = race;
+    scene.mapType = mapType;
     scene.enterSceneFn = enterSceneBriefing;
     scene.updateSceneFn = updateSceneBriefing;
     return scene;
@@ -54,7 +56,7 @@ updateSceneBriefing :: () {
         wasKeyPressed(Keys.Enter) ||
         wasKeyPressed(Keys.Space))
     {
-        nextScene := createScene(WarMenuScene);
+        nextScene := createSceneMainMenu();
         setNextScene(nextScene, 0.3);
 
         // WarMap* map = createMap(scene.mapType);
@@ -78,31 +80,31 @@ enterSceneBriefingHumans :: () {
     addTransformComponent(animEntity, VEC2_ZERO);
     addAnimationsComponent(animEntity);
 
-    anim1 := createAnimationFromResourceIndex("anim1", imageResourceRef(428), 0.2, true);
+    anim1 := createAnimationFromResourceRef("anim1", imageResourceRef(428), 0.2, true);
     anim1.offset = vec2(83, 37);
     anim1.loopDelay = 2.0;
     addAnimationFramesRange(anim1, 0, 4);
     addAnimationFramesRange(anim1, 4, 0);
     addAnimation(animEntity, anim1);
 
-    anim2 := createAnimationFromResourceIndex("anim2", imageResourceRef(429), 0.2, true);
+    anim2 := createAnimationFromResourceRef("anim2", imageResourceRef(429), 0.2, true);
     anim2.offset = vec2(207, 29);
     anim1.loopDelay = 2.0;
     addAnimationFramesRange(anim2, 0, 20);
     addAnimation(animEntity, anim2);
 
-    anim3 := createAnimationFromResourceIndex("anim3", imageResourceRef(430), 0.1, true);
+    anim3 := createAnimationFromResourceRef("anim3", imageResourceRef(430), 0.1, true);
     anim3.offset = vec2(21, 17);
     addAnimationFramesRange(anim3, 0, 20);
     addAnimation(animEntity, anim3);
 
-    anim4 := createAnimationFromResourceIndex("anim4", imageResourceRef(431), 0.1, true);
+    anim4 := createAnimationFromResourceRef("anim4", imageResourceRef(431), 0.1, true);
     anim4.offset = vec2(275, 21);
     addAnimationFramesRange(anim4, 0, 20);
     addAnimation(animEntity, anim4);
 
     briefingText := createUIText("txtBriefing", 1, 10, data.briefingText, vec2(20, 160));
-    setUITextColor(briefingText, rgbColor(255, 215, 138));
+    setUITextColor(briefingText, rgb(255, 215, 138));
     setUITextMultiline(briefingText, true);
     setUITextBoundings(briefingText, vec2(ctx.originalWindowSize.x - 40, 200));
     setUITextHorizontalAlign(briefingText, TextAlignment.Left);
@@ -130,14 +132,14 @@ enterSceneBriefingOrcs :: () {
     addTransformComponent(animEntity, VEC2_ZERO);
     addAnimationsComponent(animEntity);
 
-    anim1 := createAnimationFromResourceIndex("anim1", imageResourceRef(426), 0.2, true);
+    anim1 := createAnimationFromResourceRef("anim1", imageResourceRef(426), 0.2, true);
     anim1.offset = vec2(18, 67);
     anim1.loopDelay = 2.0;
     addAnimationFramesRange(anim1, 0, 4);
     addAnimationFramesRange(anim1, 4, 0);
     addAnimation(animEntity, anim1);
 
-    anim2 := createAnimationFromResourceIndex("anim2", imageResourceRef(427), 0.2, true);
+    anim2 := createAnimationFromResourceRef("anim2", imageResourceRef(427), 0.2, true);
     anim2.offset = vec2(202, 52);
     anim1.loopDelay = 2.0;
     addAnimationFramesRange(anim2, 0, 4);
@@ -145,14 +147,14 @@ enterSceneBriefingOrcs :: () {
     addAnimation(animEntity, anim2);
 
     if (!isDemo()) {
-        anim3 := createAnimationFromResourceIndex("anim3", imageResourceRef(425), 0.1, true);
+        anim3 := createAnimationFromResourceRef("anim3", imageResourceRef(425), 0.1, true);
         anim3.offset = vec2(140, 66);
         addAnimationFramesRange(anim3, 0, 30);
         addAnimation(animEntity, anim3);
     }
 
     briefingText := createUIText("txtBriefing", 1, 10, data.briefingText, vec2(20, 160));
-    setUITextColor(briefingText, rgbColor(255, 215, 138));
+    setUITextColor(briefingText, rgb(255, 215, 138));
     setUITextMultiline(briefingText, true);
     setUITextBoundings(briefingText, vec2(ctx.originalWindowSize.x - 40, 200));
     setUITextHorizontalAlign(briefingText, TextAlignment.Left);

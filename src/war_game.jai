@@ -1,6 +1,3 @@
-
-
-
 isRetail :: inline () -> bool {
     ctx := cast(*WarContext) context.gameContext;
     assert(ctx != null);

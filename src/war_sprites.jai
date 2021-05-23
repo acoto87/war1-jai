@@ -4,7 +4,7 @@ WarSpriteResourceRef :: struct {
     frameIndices: [MAX_SPRITE_FRAME_COUNT] s32;
 }
 
-createSpriteFromResource :: (resource: *WarResource, frameIndices: [] s32) -> Sprite {
+createSpriteFromResource :: (resource: *WarResource, frameIndicesCount: s32, frameIndices: [] s32) -> Sprite {
     assert(resource != null);
     assert(frameIndices.count > 0);
 
@@ -24,23 +24,23 @@ createSpriteFromResource :: (resource: *WarResource, frameIndices: [] s32) -> Sp
 
             frames: [] SpriteFrame = spriteResource.frames;
 
-            if (frameIndices.count > 0) {
+            if (frameIndicesCount > 0) {
                 allFrames := frames;
 
-                frames = allocArray(SpriteFrame, frameIndices.count);
-                for i : range(s32, 0, frameIndices.count) {
+                frames = allocArray(SpriteFrame, frameIndicesCount);
+                for i : range(s32, 0, frameIndicesCount) {
                     frameIndex := frameIndices[i];
                     assert(frameIndex >= 0 && frameIndex < framesCount);
 
                     frames[i] = allFrames[frameIndex];
                 }
 
-                framesCount = cast(u16) frameIndices.count;
+                framesCount = cast(u16) frameIndicesCount;
             }
 
             sprite = createSpriteFromFrames(frameWidth, frameHeight, frames);
 
-            if (frameIndices.count > 0) {
+            if (frameIndicesCount > 0) {
                 free(frames);
             }
         }
@@ -59,7 +59,7 @@ createSpriteFromResource :: (resource: *WarResource, frameIndices: [] s32) -> Sp
 
 createSpriteFromResourceRef :: (spriteResourceRef: WarSpriteResourceRef) -> Sprite {
     resource := getOrCreateResource(WarResourceSprite, cast(u32) spriteResourceRef.resourceIndex);
-    return createSpriteFromResource(resource, spriteResourceRef.frameIndices);
+    return createSpriteFromResource(resource, spriteResourceRef.frameIndicesCount, spriteResourceRef.frameIndices);
 }
 
 createSpriteResourceRef :: (resourceIndex: s32, frameIndices: [] s32) -> WarSpriteResourceRef {

@@ -309,7 +309,7 @@ loadImageResource :: (entry: *DatabaseEntry) {
 
     pixels := alloc(u8, cast(s64) width * height * 4);
     for i : range(s32, 0, cast(s32) width * height) {
-        colorIndex := cast(u32) memoryRead(u8, rawResource.data, 4 + i);
+        colorIndex := cast(s32) memoryRead(u8, rawResource.data, 4 + i);
 
         pixels[i * 4 + 0] = paletteData[colorIndex * 3 + 0];
         pixels[i * 4 + 1] = paletteData[colorIndex * 3 + 1];
@@ -372,8 +372,8 @@ loadSpriteResource :: (entry: *DatabaseEntry) {
         off := frame.off;
         for y : range(s32, frame.dy, frame.dy + frame.h) {
             for x : range(s32, frame.dx, frame.dx + frame.w) {
-                pixel := (x + y * frameWidth) * 4;
-                colorIndex := rawResource.data[off];
+                pixel := cast(s32) (x + y * frameWidth) * 4;
+                colorIndex := cast(s32) rawResource.data[off];
 
                 frame.data[pixel + 0] = paletteData[colorIndex * 3 + 0];
                 frame.data[pixel + 1] = paletteData[colorIndex * 3 + 1];

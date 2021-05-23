@@ -92,17 +92,21 @@ changeCursorType :: (entity: *Entity, type: WarCursorType) {
     }
 }
 
-updateUICursor :: () {
-    ctx := cast(*WarContext) context.gameContext;
-    assert(ctx != null);
+// updateUICursor :: () {
+//     ctx := cast(*WarContext) context.gameContext;
+//     assert(ctx != null);
 
-    input := *ctx.input;
+//     input := *ctx.input;
 
-    entity := findUIEntity("cursor");
-    if (entity != null) {
-        cursor := getComponent(entity, CursorComponent);
-        transform := getComponent(entity, TransformComponent);
-        transform.position = input.pos - cursor.hot;
-        changeCursorType(entity, WarCursorType.Arrow);
-    }
-}
+//     entity := findUIEntity("cursor");
+//     if (entity != null) {
+//         cursor := getComponent(entity, CursorComponent);
+//         assert(cursor != null);
+
+//         transform := getComponent(entity, TransformComponent);
+//         assert(transform != null);
+
+//         transform.position = input.pos - cursor.hot;
+//         changeCursorType(entity, WarCursorType.Arrow);
+//     }
+// }

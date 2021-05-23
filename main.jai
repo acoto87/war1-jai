@@ -31,6 +31,7 @@ build :: () {
     opts.output_path = OUTPUT_FOLDER_PATH;
     opts.shorten_filenames_in_error_messages = false;
     opts.backend = .LLVM;
+    opts.optimization_level = .DEBUG;
 
     importPath: [..] string;
     for path : opts.import_path {

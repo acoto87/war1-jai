@@ -1,10 +1,14 @@
 #import "glfw";
 #import "GL";
 #import "stb_image";
+#import "stb_image_write";
 #import "nanovg";
 #import "collections";
 #import "utils";
-#import "rts2d";
+#import "rts2d"(
+    MaxPlayersCount = 5,
+    MaxPlayerResourcesCount = 3,
+);
 
 #load "war_constants.jai";
 #load "war_types.jai";

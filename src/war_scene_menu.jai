@@ -331,16 +331,12 @@ handleMenuQuit :: (entity: *Entity) {
 }
 
 handleSinglePlayerOrc :: (entity: *Entity) {
-    scene := createScene(WarBriefingScene);
-    scene.race = WarRace.Orcs;
-    scene.mapType = WarCampaignMapType.Orcs01;
+    scene := createSceneBriefing(WarRace.Orcs, WarCampaignMapType.Orcs01);
     setNextScene(scene, 1.0);
 }
 
 handleSinglePlayerHuman :: (entity: *Entity) {
-    scene := createScene(WarBriefingScene);
-    scene.race = WarRace.Humans;
-    scene.mapType = WarCampaignMapType.Humans01;
+    scene := createSceneBriefing(WarRace.Humans, WarCampaignMapType.Humans01);
     setNextScene(scene, 1.0);
 }
 
