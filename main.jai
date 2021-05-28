@@ -55,7 +55,7 @@ copyFiles :: (source: string, dest: string) {
     visitor :: (info: *FileVisitInfo, paths: [2] string) {
         relativePath := info.full_name;
         advance(*relativePath, paths[0].count);
-        outPath := concatenate(paths[1], "/", relativePath);
+        outPath := join(paths[1], "/", relativePath);
         makeDirectoryTree(getDirectoryPath(outPath));
         copyFile(info.full_name, outPath);
     }
@@ -110,4 +110,4 @@ setWorkingDirectory :: Basic.set_working_directory;
 
 String :: #import "String";
 getDirectoryPath :: String.path_strip_filename;
-concatenate :: String.concatenate;
+join :: String.join;
