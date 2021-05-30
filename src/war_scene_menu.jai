@@ -9,7 +9,8 @@ enterSceneMainMenu :: () {
     createSinglePlayerMenu();
     createLoadMenu();
     createCustomGameMenu();
-    // createCheatsPanel();
+
+    initCheatsPanel();
 
     createUICursor("cursor", WarCursorType.Arrow, VEC2_ZERO);
 

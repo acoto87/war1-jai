@@ -32,8 +32,6 @@
 EXIT_SUCCESS :: 0;
 EXIT_FAILURE :: -1;
 
-#add_context gameContext: *WarContext;
-
 main :: () {
     loggerData := LoggerData.{
         severity = LogSeverity.Debug
@@ -47,9 +45,6 @@ main :: () {
         logError("Can't initialize the game!\n");
         exit(EXIT_FAILURE);
     }
-
-    glfwSetWindowUserPointer(ctx.window, *ctx);
-    // glfwSetCharCallback(context.window, inputCharCallback);
 
     while (!glfwWindowShouldClose(ctx.window)) {
         ctx.windowTitle = sprint(
