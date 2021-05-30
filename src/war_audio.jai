@@ -1,4 +1,4 @@
-WarAudioId :: enum {
+WarAudioId :: enum u32 {
     Music00                 :: 0;
     Music01                 :: 1;
     Music02                 :: 2;

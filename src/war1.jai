@@ -20,6 +20,7 @@
 #load "war_animations.jai";
 #load "war_audio.jai";
 #load "war_components.jai";
+#load "war_cheats.jai";
 // #load "war_entities.jai";
 // #load "war_units.jai";
 #load "war_scenes.jai";
