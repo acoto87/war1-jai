@@ -56,11 +56,8 @@ updateSceneBriefing :: () {
         wasKeyPressed(Keys.Enter) ||
         wasKeyPressed(Keys.Space))
     {
-        nextScene := createSceneMainMenu();
-        setNextScene(nextScene, 0.3);
-
-        // WarMap* map = createMap(scene.mapType);
-        // setNextMap(map, 1.0f);
+        map := createMap(cast(u32) scene.mapType);
+        setNextScene(map, 1.0);
     }
 }
 

@@ -5,14 +5,29 @@ createSceneMainMenu :: () -> *WarMenuScene {
 }
 
 enterSceneMainMenu :: () {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
     createMainMenu();
     createSinglePlayerMenu();
     createLoadMenu();
     createCustomGameMenu();
 
-    initCheatsPanel();
     registerBuiltInCheats();
     registerCheats();
+
+    cheatsPanelOptions: CheatPanelOptions;
+    cheatsPanelOptions.panelBackgroundColor = rgba(100, 100, 100, 160);
+    cheatsPanelOptions.panelRect = rect(0, 0, ctx.originalWindowSize.x, 12);
+    cheatsPanelOptions.textUIOffset = vec2(2, 4);
+    cheatsPanelOptions.cursorUIOffset = vec2(2, 3);
+    initCheatsPanel(cheatsPanelOptions);
+
+    flashTextOptions: FlashTextOptions;
+    flashTextOptions.textUIPosition = vec2(10, 20);
+    flashTextOptions.textUIFontIndex = 1;
+    flashTextOptions.textUIFontSize = 8;
+    initFlashText(flashTextOptions);
 
     createUICursor("cursor", WarCursorType.Arrow, VEC2_ZERO);
 

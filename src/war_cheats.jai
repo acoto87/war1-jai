@@ -78,7 +78,7 @@ applyGoldCheat :: (arguments: string) {
     // increasePlayerResource(context, &map->players[0], WAR_RESOURCE_GOLD, CHEAT_GOLD_INCREASE);
     // increasePlayerResource(context, &map->players[0], WAR_RESOURCE_WOOD, CHEAT_WOOD_INCREASE);
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applySpellsCheat :: (arguments: string) {
@@ -142,7 +142,7 @@ applySpellsCheat :: (arguments: string) {
     //     }
     // }
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applyUpgradesCheat :: (arguments: string) {
@@ -178,7 +178,7 @@ applyUpgradesCheat :: (arguments: string) {
     //     }
     // }
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applyEndCheat :: (arguments: string) {
@@ -205,9 +205,9 @@ applyEnableCheat :: (arguments: string) {
     ctx.cheatsEnabled = !ctx.cheatsEnabled;
 
     if (ctx.cheatsEnabled) {
-        setCheatsFeedback("cheats enabled");
+        setFlashText("cheats enabled");
     } else {
-        setCheatsFeedback("cheats disabled");
+        setFlashText("cheats disabled");
     }
 }
 
@@ -226,7 +226,7 @@ applyGodModeCheat :: (arguments: string) {
     // WarPlayerInfo* player = &map->players[0];
     // player->godMode = !player->godMode;
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applyWinCheat :: (arguments: string) {
@@ -243,7 +243,7 @@ applyWinCheat :: (arguments: string) {
 
     // map->result = WAR_LEVEL_RESULT_WIN;
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applyLossCheat :: (arguments: string) {
@@ -260,7 +260,7 @@ applyLossCheat :: (arguments: string) {
 
     // map->result = WAR_LEVEL_RESULT_LOSE;
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applyFogOfWarCheat :: (arguments: string) {
@@ -277,7 +277,7 @@ applyFogOfWarCheat :: (arguments: string) {
 
     // map->fowEnabled = !map->fowEnabled;
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applySkipHumanCheat :: (arguments: string) {
@@ -346,7 +346,7 @@ applySpeedCheat :: (arguments: string) {
 
     // map->hurryUp = !map->hurryUp;
 
-    // setCheatsFeedback(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
+    // setFlashText(context, CHEAT_FEEDBACK_WASCALLY_WABBIT);
 }
 
 applyEditCheat :: (arguments: string) {
@@ -370,29 +370,29 @@ applyEditCheat :: (arguments: string) {
 
     // if (strCaseEquals(argument, "off", true))
     // {
-    //     setCheatsFeedback(context, "Edit off");
+    //     setFlashText(context, "Edit off");
     //     return;
     // }
 
     // if (strCaseEquals(argument, "trees", true))
     // {
     //     map->editingTrees = true;
-    //     setCheatsFeedback(context, "Edit trees on");
+    //     setFlashText(context, "Edit trees on");
     // }
     // else if (strCaseEquals(argument, "walls", true))
     // {
     //     map->editingWalls = true;
-    //     setCheatsFeedback(context, "Edit walls on");
+    //     setFlashText(context, "Edit walls on");
     // }
     // else if (strCaseEquals(argument, "roads", true))
     // {
     //     map->editingRoads = true;
-    //     setCheatsFeedback(context, "Edit roads on");
+    //     setFlashText(context, "Edit roads on");
     // }
     // else if (strCaseEquals(argument, "ruins", true))
     // {
     //     map->editingRuins = true;
-    //     setCheatsFeedback(context, "Edit ruins on");
+    //     setFlashText(context, "Edit ruins on");
     // }
 }
 
@@ -420,7 +420,7 @@ applyMusicCheat :: (arguments: string) {
                 //
                 // removeAudiosOfType(WAR_AUDIO_MIDI);
                 // createAudio(musicId, true);
-                setCheatsFeedbackFormat("Music % set", musicId + 1);
+                setFlashTextFormat("Music % set", musicId + 1);
             }
         }
     }
@@ -448,7 +448,7 @@ applyAddUnitCheat :: (arguments: string) {
 
     // if (strCaseStartsWith(argument, "off", true))
     // {
-    //     setCheatsFeedback(context, "Add unit off");
+    //     setFlashText(context, "Add unit off");
     //     return;
     // }
 
@@ -579,7 +579,7 @@ applyAddUnitCheat :: (arguments: string) {
 
     // if (map->addingUnit)
     // {
-    //     setCheatsFeedbackFormat(context, "Add unit %s", argument);
+    //     setFlashTextFormat(context, "Add unit %s", argument);
     // }
 }
 
@@ -603,9 +603,9 @@ applyRainOfFireCheat :: (arguments: string) {
     // map->addingUnit = false;
 
     // if (map->editingRainOfFire)
-    //     setCheatsFeedback(context, "Rain of fire on");
+    //     setFlashText(context, "Rain of fire on");
     // else
-    //     setCheatsFeedback(context, "Rain of fire off");
+    //     setFlashText(context, "Rain of fire off");
 }
 
 applyDebugGrid :: (arguments: string) {
@@ -623,9 +623,9 @@ applyDebugGrid :: (arguments: string) {
     // map->renderDebugGrid = !map->renderDebugGrid;
 
     // if (map->renderDebugGrid)
-    //     setCheatsFeedback(context, "Render debug grid on");
+    //     setFlashText(context, "Render debug grid on");
     // else
-    //     setCheatsFeedback(context, "Render debug grid off");
+    //     setFlashText(context, "Render debug grid off");
 }
 
 applyDebugPassable :: (arguments: string) {
@@ -643,9 +643,9 @@ applyDebugPassable :: (arguments: string) {
     // map->renderDebugPassable = !map->renderDebugPassable;
 
     // if (map->renderDebugPassable)
-    //     setCheatsFeedback(context, "Render debug passable info on");
+    //     setFlashText(context, "Render debug passable info on");
     // else
-    //     setCheatsFeedback(context, "Render debug passable info off");
+    //     setFlashText(context, "Render debug passable info off");
 }
 
 applyDebugPaths :: (arguments: string) {
@@ -663,7 +663,7 @@ applyDebugPaths :: (arguments: string) {
     // map->renderDebugPaths = !map->renderDebugPaths;
 
     // if (map->renderDebugPaths)
-    //     setCheatsFeedback(context, "Render debug paths on");
+    //     setFlashText(context, "Render debug paths on");
     // else
-    //     setCheatsFeedback(context, "Render debug paths off");
+    //     setFlashText(context, "Render debug paths off");
 }

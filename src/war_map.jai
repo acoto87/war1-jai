@@ -31,11 +31,13 @@ createMap :: (levelInfoIndex: u32) -> *WarMap {
     map.tilesHeight = MAP_TILES_HEIGHT;
     map.levelInfoIndex = levelInfoIndex;
     map.enterSceneFn = enterMap;
-    // map.leaveSceneFn = leaveMap;
-    // map.updateSceneFn = updateMap;
-    // map.renderSceneFn = renderMap;
+    map.leaveSceneFn = leaveMap;
+    map.updateSceneFn = updateMap;
+    map.renderSceneFn = renderMap;
     return map;
 }
+
+#scope_file
 
 enterMap :: () {
     ctx := cast(*WarContext) context.gameContext;
@@ -80,77 +82,77 @@ enterMap :: () {
     startY := levelInfo.startY * MEGA_TILE_HEIGHT;
     map.viewport = rect(startX, startY, MAP_VIEWPORT_WIDTH, MAP_VIEWPORT_HEIGHT);
 
-    map.finder = initPathFinder(PathFindingType.Astar, MAP_TILES_WIDTH, MAP_TILES_HEIGHT, levelPassable.data);
+    // map.finder = initPathFinder(PathFindingType.Astar, MAP_TILES_WIDTH, MAP_TILES_HEIGHT, levelPassable.data);
 
     // create the black sprite
-    {
-        data: [MEGA_TILE_WIDTH * MEGA_TILE_HEIGHT * 4] u8;
-        for i : range(s32, 0, MEGA_TILE_WIDTH * MEGA_TILE_HEIGHT) {
-            data[4 * i + 3] = 255;
-        }
+    // {
+    //     data: [MEGA_TILE_WIDTH * MEGA_TILE_HEIGHT * 4] u8;
+    //     for i : range(s32, 0, MEGA_TILE_WIDTH * MEGA_TILE_HEIGHT) {
+    //         data[4 * i + 3] = 255;
+    //     }
 
-        map.blackSprite = createSprite(MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT, data.data);
-    }
+    //     map.blackSprite = createSprite(MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT, data.data);
+    // }
 
     // create the map sprite
-    {
-        levelVisual := getOrCreateResource(WarResourceLevelVisual, levelInfo.visualIndex);
-        assert(levelVisual != null);
+    // {
+    //     levelVisual := getOrCreateResource(WarResourceLevelVisual, levelInfo.visualIndex);
+    //     assert(levelVisual != null);
 
-        tileset := getOrCreateResource(WarResourceTileset, levelInfo.tilesetIndex);
-        assert(tileset != null);
+    //     tileset := getOrCreateResource(WarResourceTileset, levelInfo.tilesetIndex);
+    //     assert(tileset != null);
 
-        // DEBUG:
-        // print level visual data to console to see the sprites of the map
-        //
-        // for(s32 y = 0; y < MAP_TILES_HEIGHT; y++)
-        // {
-        //     for(s32 x = 0; x < MAP_TILES_WIDTH; x++)
-        //     {
-        //         // index of the tile in the tilesheet
-        //         u16 tileIndex = levelVisual.levelVisual.data[y * MAP_TILES_WIDTH + x];
-        //         printf("%d ", tileIndex);
-        //     }
+    //     // DEBUG:
+    //     // print level visual data to console to see the sprites of the map
+    //     //
+    //     // for(s32 y = 0; y < MAP_TILES_HEIGHT; y++)
+    //     // {
+    //     //     for(s32 x = 0; x < MAP_TILES_WIDTH; x++)
+    //     //     {
+    //     //         // index of the tile in the tilesheet
+    //     //         u16 tileIndex = levelVisual.levelVisual.data[y * MAP_TILES_WIDTH + x];
+    //     //         printf("%d ", tileIndex);
+    //     //     }
 
-        //     printf("\n");
-        // }
+    //     //     printf("\n");
+    //     // }
 
-        map.sprite = createSprite(TILESET_WIDTH, TILESET_HEIGHT, tileset.data.data);
+    //     map.sprite = createSprite(TILESET_WIDTH, TILESET_HEIGHT, tileset.data.data);
 
-        // the minimap sprite will be a 2 frames sprite
-        // the first one will be the frame that actually render
-        // the second one will be the minimap for the terrain, created at startup time,
-        // that way I only have to memcpy to the first frame and do the work only for the units
-        // that way I also don't have to allocate memory for the minimap each frame
-        minimapFrames: [2] SpriteFrame;
+    //     // the minimap sprite will be a 2 frames sprite
+    //     // the first one will be the frame that actually render
+    //     // the second one will be the minimap for the terrain, created at startup time,
+    //     // that way I only have to memcpy to the first frame and do the work only for the units
+    //     // that way I also don't have to allocate memory for the minimap each frame
+    //     minimapFrames: [2] SpriteFrame;
 
-        for * frame : minimapFrames {
-            frame.dx = 0;
-            frame.dy = 0;
-            frame.w = MINIMAP_WIDTH;
-            frame.h = MINIMAP_HEIGHT;
-            frame.off = 0;
-            frame.data = alloc(u8, MINIMAP_WIDTH * MINIMAP_HEIGHT * 4);
+    //     for * frame : minimapFrames {
+    //         frame.dx = 0;
+    //         frame.dy = 0;
+    //         frame.w = MINIMAP_WIDTH;
+    //         frame.h = MINIMAP_HEIGHT;
+    //         frame.off = 0;
+    //         frame.data = alloc(u8, MINIMAP_WIDTH * MINIMAP_HEIGHT * 4);
 
-            // make the frame black
-            for k : range(s32, 0, MINIMAP_WIDTH * MINIMAP_HEIGHT) {
-                frame.data[k * 4 + 3] = 255;
-            }
-        }
+    //         // make the frame black
+    //         for k : range(s32, 0, MINIMAP_WIDTH * MINIMAP_HEIGHT) {
+    //             frame.data[k * 4 + 3] = 255;
+    //         }
+    //     }
 
-        for y : range(s32, 0, MAP_TILES_HEIGHT) {
-            for x : range(s32, 0, MAP_TILES_WIDTH) {
-                color := getMapTileAverage(levelVisual, tileset, x, y);
-                index := y * MAP_TILES_WIDTH + x;
-                minimapFrames[1].data[index * 4 + 0] = color.r;
-                minimapFrames[1].data[index * 4 + 1] = color.g;
-                minimapFrames[1].data[index * 4 + 2] = color.b;
-                minimapFrames[1].data[index * 4 + 3] = color.a;
-            }
-        }
+    //     for y : range(s32, 0, MAP_TILES_HEIGHT) {
+    //         for x : range(s32, 0, MAP_TILES_WIDTH) {
+    //             color := getMapTileAverage(levelVisual, tileset, x, y);
+    //             index := y * MAP_TILES_WIDTH + x;
+    //             minimapFrames[1].data[index * 4 + 0] = color.r;
+    //             minimapFrames[1].data[index * 4 + 1] = color.g;
+    //             minimapFrames[1].data[index * 4 + 2] = color.b;
+    //             minimapFrames[1].data[index * 4 + 3] = color.a;
+    //         }
+    //     }
 
-        map.minimapSprite = createSpriteFromFrames(MINIMAP_WIDTH, MINIMAP_HEIGHT, minimapFrames);
-    }
+    //     map.minimapSprite = createSpriteFromFrames(MINIMAP_WIDTH, MINIMAP_HEIGHT, minimapFrames);
+    // }
 
     // create the forest entities
     // {
@@ -308,8 +310,12 @@ enterMap :: () {
     // init AI
     // initAIPlayers(context);
 
+    // add cheats
+    registerBuiltInCheats();
+    registerCheats();
+
     // add ui entities
-    // createMapUI(context);
+    createMapUI();
     // createMenu(context);
     // createOptionsMenu(context);
     // createObjectivesMenu(context);
@@ -323,167 +329,181 @@ enterMap :: () {
     //     createAudio(WAR_MUSIC_00, true);
 }
 
-#scope_file
+leaveMap :: () {
+    ctx := cast(*WarContext) context.gameContext;
+    assert(ctx != null);
+
+    map := cast(*WarMap) ctx.scene;
+    assert(map != null);
+
+    freeSprite(map.sprite);
+    freeSprite(map.minimapSprite);
+    freeSprite(map.blackSprite);
+
+    uninit(*map.selectedEntities);
+
+    freePathFinder(map.finder);
+    freeScene(map);
+}
 
 renderMap :: () {
     ctx := cast(*WarContext) context.gameContext;
     assert(ctx != null);
 
     nvgSave(ctx.gfx);
-    nvgScale(ctx.gfx, ctx.globalScale, ctx.globalScale);
 
     // render map
-    renderMapPanel();
+    // renderMapPanel();
 
     // render ui
-    // renderMapUI();
+    renderMapUI();
 
     nvgRestore(ctx.gfx);
 }
 
-renderMapPanel :: () {
-    ctx := cast(*WarContext) context.gameContext;
-    assert(ctx != null);
+// renderMapPanel :: () {
+//     ctx := cast(*WarContext) context.gameContext;
+//     assert(ctx != null);
 
-    map := cast(*WarMap) ctx.scene;
-    assert(map != null);
+//     map := cast(*WarMap) ctx.scene;
+//     assert(map != null);
 
-    nvgSave(ctx.gfx);
+//     nvgSave(ctx.gfx);
 
-    nvgTranslate(ctx.gfx, map.mapPanel.x, map.mapPanel.y);
-    nvgTranslate(ctx.gfx, -map.viewport.x, -map.viewport.y);
+//     nvgTranslate(ctx.gfx, map.mapPanel.x, map.mapPanel.y);
+//     nvgTranslate(ctx.gfx, -map.viewport.x, -map.viewport.y);
 
-    renderTerrain();
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_RUIN);
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_ROAD);
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_WALL);
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_FOREST);
+//     renderTerrain();
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_RUIN);
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_ROAD);
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_WALL);
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_FOREST);
 
-    // if (map.renderDebugPaths) {
-    //     renderUnitPaths();
-    // }
+//     // if (map.renderDebugPaths) {
+//     //     renderUnitPaths();
+//     // }
 
-    // if (map.renderDebugPassable) {
-    //     renderPassableInfo();
-    // }
+//     // if (map.renderDebugPassable) {
+//     //     renderPassableInfo();
+//     // }
 
-    // if (map.renderDebugGrid) {
-    //     renderMapGrid();
-    // }
+//     // if (map.renderDebugGrid) {
+//     //     renderMapGrid();
+//     // }
 
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_UNIT);
-    // renderUnitSelection();
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_PROJECTILE);
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_POISON_CLOUD);
-    // renderEntitiesOfType(WAR_ENTITY_TYPE_ANIMATION);
-    // renderFoW();
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_UNIT);
+//     // renderUnitSelection();
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_PROJECTILE);
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_POISON_CLOUD);
+//     // renderEntitiesOfType(WAR_ENTITY_TYPE_ANIMATION);
+//     // renderFoW();
 
-    nvgRestore(ctx.gfx);
-}
+//     nvgRestore(ctx.gfx);
+// }
 
-renderTerrain :: () {
-    ctx := cast(*WarContext) context.gameContext;
-    assert(ctx != null);
+// renderTerrain :: () {
+//     ctx := cast(*WarContext) context.gameContext;
+//     assert(ctx != null);
 
-    map := cast(*WarMap) ctx.scene;
-    assert(map != null);
+//     map := cast(*WarMap) ctx.scene;
+//     assert(map != null);
 
-    uiPlayer := getMapUIPlayer(map);
+//     uiPlayer := getMapUIPlayer(map);
 
-    levelInfo := getOrCreateResource(WarResourceLevelInfo, map.levelInfoIndex);
-    assert(levelInfo != null);
+//     levelInfo := getOrCreateResource(WarResourceLevelInfo, map.levelInfoIndex);
+//     assert(levelInfo != null);
 
-    levelVisual := getOrCreateResource(WarResourceLevelVisual, levelInfo.visualIndex);
-    assert(levelVisual != null);
+//     levelVisual := getOrCreateResource(WarResourceLevelVisual, levelInfo.visualIndex);
+//     assert(levelVisual != null);
 
-    batch := nvgBeginImageBatch(ctx.gfx, map.sprite.image, MAP_TILES_WIDTH * MAP_TILES_HEIGHT);
+//     batch := nvgBeginImageBatch(ctx.gfx, map.sprite.image, MAP_TILES_WIDTH * MAP_TILES_HEIGHT);
 
-    for y : range(s32, 0, MAP_TILES_HEIGHT) {
-        for x : range(s32, 0, MAP_TILES_WIDTH) {
-            if (!map.fowEnabled) {
-                // index of the tile in the tilesheet
-                tileIndex := levelVisual.data[y * MAP_TILES_WIDTH + x];
+//     for y : range(s32, 0, MAP_TILES_HEIGHT) {
+//         for x : range(s32, 0, MAP_TILES_WIDTH) {
+//             if (!map.fowEnabled) {
+//                 // index of the tile in the tilesheet
+//                 tileIndex := levelVisual.data[y * MAP_TILES_WIDTH + x];
 
-                // coordinates in pixels of the terrain tile
-                tilePixelX := (tileIndex % TILESET_TILES_PER_ROW) * MEGA_TILE_WIDTH;
-                tilePixelY := (tileIndex / TILESET_TILES_PER_ROW) * MEGA_TILE_HEIGHT;
+//                 // coordinates in pixels of the terrain tile
+//                 tilePixelX := (tileIndex % TILESET_TILES_PER_ROW) * MEGA_TILE_WIDTH;
+//                 tilePixelY := (tileIndex / TILESET_TILES_PER_ROW) * MEGA_TILE_HEIGHT;
 
-                nvgSave(ctx.gfx);
-                nvgTranslate(ctx.gfx, cast(f32) x * MEGA_TILE_WIDTH, cast(f32) y * MEGA_TILE_HEIGHT);
+//                 nvgSave(ctx.gfx);
+//                 nvgTranslate(ctx.gfx, cast(f32) x * MEGA_TILE_WIDTH, cast(f32) y * MEGA_TILE_HEIGHT);
 
-                rs := rect(tilePixelX, tilePixelY, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
-                rd := rect(0, 0, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
-                nvgRenderBatchImage(ctx.gfx, batch, rs, rd, VEC2_ONE);
+//                 rs := rect(tilePixelX, tilePixelY, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
+//                 rd := rect(0, 0, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
+//                 nvgRenderBatchImage(ctx.gfx, batch, rs, rd, VEC2_ONE);
 
-                nvgRestore(ctx.gfx);
-            } else {
-                assert(uiPlayer != null);
+//                 nvgRestore(ctx.gfx);
+//             } else {
+//                 assert(uiPlayer != null);
 
-                tile := getMapTileState(map, uiPlayer, x, y);
-                if (tile.state == MapTileState.Visible ||
-                    tile.state == MapTileState.Fog)
-                {
-                    // index of the tile in the tilesheet
-                    tileIndex := levelVisual.data[y * MAP_TILES_WIDTH + x];
+//                 tile := getMapTileState(map, uiPlayer, x, y);
+//                 if (tile.state == MapTileState.Visible ||
+//                     tile.state == MapTileState.Fog)
+//                 {
+//                     // index of the tile in the tilesheet
+//                     tileIndex := levelVisual.data[y * MAP_TILES_WIDTH + x];
 
-                    // coordinates in pixels of the terrain tile
-                    tilePixelX := (tileIndex % TILESET_TILES_PER_ROW) * MEGA_TILE_WIDTH;
-                    tilePixelY := (tileIndex / TILESET_TILES_PER_ROW) * MEGA_TILE_HEIGHT;
+//                     // coordinates in pixels of the terrain tile
+//                     tilePixelX := (tileIndex % TILESET_TILES_PER_ROW) * MEGA_TILE_WIDTH;
+//                     tilePixelY := (tileIndex / TILESET_TILES_PER_ROW) * MEGA_TILE_HEIGHT;
 
-                    nvgSave(ctx.gfx);
-                    nvgTranslate(ctx.gfx, cast(f32) x * MEGA_TILE_WIDTH, cast(f32) y * MEGA_TILE_HEIGHT);
+//                     nvgSave(ctx.gfx);
+//                     nvgTranslate(ctx.gfx, cast(f32) x * MEGA_TILE_WIDTH, cast(f32) y * MEGA_TILE_HEIGHT);
 
-                    rs := rect(tilePixelX, tilePixelY, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
-                    rd := rect(0, 0, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
-                    nvgRenderBatchImage(ctx.gfx, batch, rs, rd, VEC2_ONE);
+//                     rs := rect(tilePixelX, tilePixelY, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
+//                     rd := rect(0, 0, MEGA_TILE_WIDTH, MEGA_TILE_HEIGHT);
+//                     nvgRenderBatchImage(ctx.gfx, batch, rs, rd, VEC2_ONE);
 
-                    nvgRestore(ctx.gfx);
-                }
-            }
-        }
-    }
+//                     nvgRestore(ctx.gfx);
+//                 }
+//             }
+//         }
+//     }
 
-    nvgEndImageBatch(ctx.gfx, batch);
-}
+//     nvgEndImageBatch(ctx.gfx, batch);
+// }
 
-getMapTileAverage :: (levelVisual : *WarResourceLevelVisual, tileset: *WarResourceTileset, x: s32, y: s32) -> Color {
-    index := y * MAP_TILES_WIDTH + x;
-    tileIndex := levelVisual.data[index];
+// getMapTileAverage :: (levelVisual : *WarResourceLevelVisual, tileset: *WarResourceTileset, x: s32, y: s32) -> Color {
+//     index := y * MAP_TILES_WIDTH + x;
+//     tileIndex := levelVisual.data[index];
 
-    tilePixelX := (tileIndex % TILESET_TILES_PER_ROW) * MEGA_TILE_WIDTH;
-    tilePixelY := (tileIndex / TILESET_TILES_PER_ROW) * MEGA_TILE_HEIGHT;
+//     tilePixelX := (tileIndex % TILESET_TILES_PER_ROW) * MEGA_TILE_WIDTH;
+//     tilePixelY := (tileIndex / TILESET_TILES_PER_ROW) * MEGA_TILE_HEIGHT;
 
-    r, g, b: s32;
+//     r, g, b: s32;
 
-    for ty : range(s32, 0, MEGA_TILE_HEIGHT) {
-        for tx : range(s32, 0, MEGA_TILE_WIDTH) {
-            pixel := (tilePixelY + ty) * TILESET_WIDTH + (tilePixelX + tx);
-            r += tileset.data[pixel * 4 + 0];
-            g += tileset.data[pixel * 4 + 1];
-            b += tileset.data[pixel * 4 + 2];
-        }
-    }
+//     for ty : range(s32, 0, MEGA_TILE_HEIGHT) {
+//         for tx : range(s32, 0, MEGA_TILE_WIDTH) {
+//             pixel := (tilePixelY + ty) * TILESET_WIDTH + (tilePixelX + tx);
+//             r += tileset.data[pixel * 4 + 0];
+//             g += tileset.data[pixel * 4 + 1];
+//             b += tileset.data[pixel * 4 + 2];
+//         }
+//     }
 
-    r /= 256;
-    g /= 256;
-    b /= 256;
+//     r /= 256;
+//     g /= 256;
+//     b /= 256;
 
-    return rgba(cast(u8) r, cast(u8) g, cast(u8) b, 255);
-}
+//     return rgba(cast(u8) r, cast(u8) g, cast(u8) b, 255);
+// }
 
-getMapUIPlayer :: (map: *WarMap) -> *PlayerInfo {
-    if (map.observer) {
-        if (map.uiPlayer < 0) {
-            // NOTE: If the uiPlayer is -1 it means there is no specific ui player,
-            // then FoW need to be disabled
-            assert(!map.fowEnabled);
-            return null;
-        }
+// getMapUIPlayer :: (map: *WarMap) -> *PlayerInfo {
+//     if (map.observer) {
+//         if (map.uiPlayer < 0) {
+//             // NOTE: If the uiPlayer is -1 it means there is no specific ui player,
+//             // then FoW need to be disabled
+//             assert(!map.fowEnabled);
+//             return null;
+//         }
 
-        return *map.players[map.uiPlayer];
-    }
+//         return *map.players[map.uiPlayer];
+//     }
 
-    // NOTE: If there is no observer, then there must be always an ui player (the human player)
-    assert(map.uiPlayer == 0);
-    return *map.players[map.uiPlayer];
-}
+//     // NOTE: If there is no observer, then there must be always an ui player (the human player)
+//     assert(map.uiPlayer == 0);
+//     return *map.players[map.uiPlayer];
+// }

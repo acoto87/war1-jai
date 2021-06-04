@@ -28,6 +28,8 @@
 // #load "war_player.jai";
 #load "war_campaigns.jai";
 #load "war_map.jai";
+#load "war_map_ui.jai";
+#load "war_map_update.jai";
 #load "war_game.jai";
 
 EXIT_SUCCESS :: 0;
